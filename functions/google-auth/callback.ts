@@ -3,12 +3,12 @@
  * Google redirects user to this endpoint after they provide consent
  */
 
-import { GOOGLE_TOKEN_URI, GOOGLE_USERINFO_URL } from '@/constants';
 import jwt from '@tsndr/cloudflare-worker-jwt';
+import * as googleApi from '@helpers/google-api';
 
 export const prerender = false;
 
-export interface TokenResponseT {
+interface TokenResponseT {
 	access_token: string;
 	expires_in: number;
 	refresh_token: string;
@@ -16,23 +16,24 @@ export interface TokenResponseT {
 	token_type: 'Bearer';
 }
 
-export interface UserInfoResponseT {
+interface UserInfoResponseT {
 	id: string;
 	email: string;
 	verified_email: boolean;
 	picture: string;
 }
 
-export interface JWTTokenPayloadT {
+interface JWTTokenPayloadT {
+	accessToken: string;
 	email: string;
-	verified_email: boolean;
+	verifiedEmail: boolean;
 }
 
 type gTaskId = string;
 type nTaskId = string;
 type completedAt = string; // ISO date string '2023-10-25'
 
-export interface UserKVDataT {
+interface UserKVDataT {
 	gToken: TokenResponseT;
 	gUser: UserInfoResponseT;
 	gTasksListId?: string;
@@ -41,7 +42,7 @@ export interface UserKVDataT {
 	lastSynced?: string; // ISO date string '2023-10-25T11:56:22.678Z'
 }
 
-export interface UserKVDataInitializedT {
+interface UserKVDataInitializedT {
 	gToken: TokenResponseT;
 	gUser: UserInfoResponseT;
 	gTasksListId: string;
@@ -67,39 +68,20 @@ export const onRequestGet: PagesFunction<CFEnvT> = async ({ request, env }) => {
 	}
 
 	// Exchange auth code for access token
-	const googleTokenUrl = new URL(GOOGLE_TOKEN_URI);
-	googleTokenUrl.searchParams.set('code', authCode);
-	googleTokenUrl.searchParams.set('client_id', env.GOOGLE_CLIENT_ID);
-	googleTokenUrl.searchParams.set('client_secret', env.GOOGLE_CLIENT_SECRET);
-	googleTokenUrl.searchParams.set('redirect_uri', env.GOOGLE_REDIRECT_URI);
-	googleTokenUrl.searchParams.set('grant_type', 'authorization_code');
-	const tokensResp = await fetch(googleTokenUrl.toString(), {
-		method: 'POST',
-		headers: { accept: 'application/json' },
-	});
-	// TODO: handle error response
-	const tokenData = (await tokensResp.json()) as TokenResponseT;
-	const accessToken = tokenData.access_token;
+	const tokenData = await googleApi.fetchToken(authCode, env);
 
 	// Get user info
-	const userInfoResp = await fetch(GOOGLE_USERINFO_URL, {
-		method: 'GET',
-		headers: {
-			Authorization: `Bearer ${accessToken}`,
-			accept: 'application/json',
-		},
-	});
-	const userInfoData = (await userInfoResp.json()) as UserInfoResponseT;
-	if (!userInfoData.verified_email) {
+	const userData = await googleApi.fetchUserInfo(tokenData.access_token);
+	if (!userData.verified_email) {
 		return new Response('User email not verified', { status: 400 });
 	}
 
 	// Store user and token in KV
 	await env.NOTION_GTASKS_KV.put(
-		userInfoData.email,
+		userData.email,
 		JSON.stringify({
 			gToken: tokenData,
-			gUser: userInfoData,
+			gUser: userData,
 		} as UserKVDataT),
 	);
 
@@ -107,8 +89,9 @@ export const onRequestGet: PagesFunction<CFEnvT> = async ({ request, env }) => {
 	// TODO: set expiration time?
 	const jwtToken = await jwt.sign(
 		{
-			email: userInfoData.email,
-			verified_email: userInfoData.verified_email,
+			accessToken: tokenData.access_token,
+			email: userData.email,
+			verifiedEmail: userData.verified_email,
 		} as JWTTokenPayloadT,
 		env.JWT_SECRET,
 	);

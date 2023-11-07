@@ -9,7 +9,7 @@
 		"start": "astro dev",
 		"build": "astro check && astro build",
 		"preview": "astro preview",
-		"preview-wrangler": "wrangler pages dev ./dist --port 3000 --kv=NOTION_GTASKS_KV",
+		"preview:functions": "astro build && wrangler pages dev ./dist --port 3000 --kv=NOTION_GTASKS_KV",
 		"deploy": "astro build && wrangler pages deploy ./dist",
 		"_functions:build": "wrangler pages functions build ./functions"
 	},

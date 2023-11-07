@@ -1,8 +1,26 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import jwt from '@tsndr/cloudflare-worker-jwt';
+import * as googleApi from '@helpers/google-api';
+
 export const prerender = false;
+
 // Check if user has authenticated
-// const jwtToken = Astro.cookies.get('token');
+const runtime = Astro.locals.runtime;
+const jwtToken = Astro.cookies.get('token');
+let isUserLoggedIn = false;
+let userInfo = null;
+let jwtTokenData = null;
+// TODO: verify permissions
+let hasProperGooglePermissions = false;
+if (jwtToken?.value) {
+	try {
+		const isValid = await jwt.verify(jwtToken.value, runtime.env.JWT_SECRET);
+		jwtTokenData = await jwt.decode(jwtToken.value);
+		userInfo = await googleApi.fetchUserInfo(jwtTokenData.payload.accessToken);
+		isUserLoggedIn = true;
+	} catch (error) {}
+}
 ---
 
 <Layout title="Welcome to Astro.">
@@ -15,6 +33,12 @@ export const prerender = false;
 				>Connect Google</a
 			>
 		</div>
+		<div class="my-5">
+			The User is logged
+			{isUserLoggedIn ? 'IN' : 'OFF'}
+		</div>
+		<div class="mt-5">2. Choose Google Task List</div>
+		<div class="mt-5">3. Connect Notion</div>
 	</main>
 </Layout>
 
