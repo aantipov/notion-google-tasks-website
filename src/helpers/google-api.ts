@@ -1,5 +1,8 @@
 import { GOOGLE_TOKEN_URI, GOOGLE_USERINFO_URL } from '@/constants';
 
+const TASKS_LISTS_URL =
+	'https://tasks.googleapis.com/tasks/v1/users/@me/lists?maxResults=100';
+
 interface UserInfoResponseT {
 	id: string;
 	email: string;
@@ -13,6 +16,35 @@ interface TokenResponseT {
 	refresh_token: string;
 	scope: string;
 	token_type: 'Bearer';
+}
+
+export interface GTasksList {
+	id: string;
+	title: string;
+}
+
+export async function fetchTasksLists(
+	accessToken: string,
+): Promise<GTasksList[]> {
+	try {
+		const resp = await fetch(TASKS_LISTS_URL, {
+			method: 'GET',
+			headers: {
+				Authorization: `Bearer ${accessToken}`,
+				accept: 'application/json',
+			},
+		});
+		if (!resp.ok) {
+			throw new Error(
+				`Failed to fetch tasks lists: ${resp.status} ${resp.statusText}`,
+			);
+		}
+		const data = (await resp.json()) as { items: GTasksList[] };
+		return data.items;
+	} catch (error) {
+		console.error('Error fetching google tasks lists', error);
+		throw error;
+	}
 }
 
 export async function fetchUserInfo(

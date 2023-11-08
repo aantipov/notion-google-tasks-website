@@ -6,6 +6,8 @@ _worker.bundle
 functions/*
 !functions/google-auth/
 !functions/google-auth/*
+!functions/api/
+!functions/api/*
 !functions/env.d.ts
 !functions/tsconfig.json
 

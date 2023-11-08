@@ -1,7 +1,9 @@
 ---
-import Layout from '../layouts/Layout.astro';
+import Layout from '@/layouts/Layout.astro';
 import jwt from '@tsndr/cloudflare-worker-jwt';
 import * as googleApi from '@helpers/google-api';
+import Main from '@/components/Main.tsx';
+import type { KVDataT } from '@/types';
 
 export const prerender = false;
 
@@ -11,6 +13,7 @@ const jwtToken = Astro.cookies.get('token');
 let isUserLoggedIn = false;
 let userInfo = null;
 let jwtTokenData = null;
+let kvData = null;
 // TODO: verify permissions
 let hasProperGooglePermissions = false;
 if (jwtToken?.value) {
@@ -18,27 +21,27 @@ if (jwtToken?.value) {
 		const isValid = await jwt.verify(jwtToken.value, runtime.env.JWT_SECRET);
 		jwtTokenData = await jwt.decode(jwtToken.value);
 		userInfo = await googleApi.fetchUserInfo(jwtTokenData.payload.accessToken);
+		kvData = (await runtime.env.NOTION_GTASKS_KV.get(userInfo.email, {
+			type: 'json',
+		})) as KVDataT;
 		isUserLoggedIn = true;
-	} catch (error) {}
+	} catch (error) {
+		console.error('ERROR', error);
+	}
 }
+
+console.log('isUserLoggedIn', isUserLoggedIn);
 ---
 
 <Layout title="Welcome to Astro.">
 	<main class="m-10">
 		<h1 class="text-4xl">Notion <=> Google Tasks two-way sync</h1>
-		<div class="mt-5">
-			1. <a
-				href="/google-auth"
-				class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-				>Connect Google</a
-			>
-		</div>
-		<div class="my-5">
-			The User is logged
-			{isUserLoggedIn ? 'IN' : 'OFF'}
-		</div>
-		<div class="mt-5">2. Choose Google Task List</div>
-		<div class="mt-5">3. Connect Notion</div>
+		<Main
+			client:load
+			isUserLoggedIn={isUserLoggedIn}
+			jwtTokenData={jwtTokenData}
+			tasklistId={kvData?.gTasksListId}
+		/>
 	</main>
 </Layout>
 

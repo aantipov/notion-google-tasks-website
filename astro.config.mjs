@@ -2,6 +2,8 @@ import { defineConfig } from 'astro/config';
 import cloudflare from '@astrojs/cloudflare';
 import tailwind from '@astrojs/tailwind';
 
+import react from '@astrojs/react';
+
 // https://astro.build/config
 export default defineConfig({
 	output: 'hybrid',
@@ -9,10 +11,10 @@ export default defineConfig({
 		mode: 'directory',
 		routes: {
 			strategy: 'auto',
-			include: ['/google-auth/*'],
+			include: ['/google-auth/*', '/api/*'],
 		},
 		functionPerRoute: false,
 		runtime: { mode: 'local' },
 	}),
-	integrations: [tailwind()],
+	integrations: [tailwind(), react()],
 });
