@@ -1,11 +1,16 @@
 # build output
 dist/
+
+# wrangler project
 _worker.bundle
-.wrangler
+.dev.vars
+.wrangler/
 
 functions/*
 !functions/google-auth/
 !functions/google-auth/*
+!functions/notion-auth/
+!functions/notion-auth/*
 !functions/api/
 !functions/api/*
 !functions/env.d.ts
