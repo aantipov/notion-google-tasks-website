@@ -1,7 +1,9 @@
-import { GOOGLE_TOKEN_URI, GOOGLE_USERINFO_URL } from '@/constants';
+/**
+ * Google API helpers
+ * IMPORTANT: This file is to be used by Server Functions only!
+ */
 
-const TASKS_LISTS_URL =
-	'https://tasks.googleapis.com/tasks/v1/users/@me/lists?maxResults=100';
+import { GOOGLE_TOKEN_URI, GOOGLE_USERINFO_URL } from '@/constants';
 
 interface UserInfoResponseT {
 	id: string;
@@ -10,7 +12,7 @@ interface UserInfoResponseT {
 	picture: string;
 }
 
-interface TokenResponseT {
+interface OritinalTokenResponseT {
 	access_token: string;
 	expires_in: number;
 	refresh_token: string;
@@ -18,38 +20,16 @@ interface TokenResponseT {
 	token_type: 'Bearer';
 }
 
-export interface GTasksList {
+export interface GTokenResponseT extends OritinalTokenResponseT {
+	user: UserInfoResponseT;
+}
+
+export interface GTasksListT {
 	id: string;
 	title: string;
 }
 
-export async function fetchTasksLists(
-	accessToken: string,
-): Promise<GTasksList[]> {
-	try {
-		const resp = await fetch(TASKS_LISTS_URL, {
-			method: 'GET',
-			headers: {
-				Authorization: `Bearer ${accessToken}`,
-				accept: 'application/json',
-			},
-		});
-		if (!resp.ok) {
-			throw new Error(
-				`Failed to fetch tasks lists: ${resp.status} ${resp.statusText}`,
-			);
-		}
-		const data = (await resp.json()) as { items: GTasksList[] };
-		return data.items;
-	} catch (error) {
-		console.error('Error fetching google tasks lists', error);
-		throw error;
-	}
-}
-
-export async function fetchUserInfo(
-	accessToken: string,
-): Promise<UserInfoResponseT> {
+async function fetchUserInfo(accessToken: string): Promise<UserInfoResponseT> {
 	try {
 		const userResp = await fetch(GOOGLE_USERINFO_URL, {
 			method: 'GET',
@@ -71,7 +51,10 @@ export async function fetchUserInfo(
 	}
 }
 
-export async function fetchToken(authCode: string, env: CFEnvT) {
+export async function fetchToken(
+	authCode: string,
+	env: CFEnvT,
+): Promise<GTokenResponseT> {
 	try {
 		const googleTokenUrl = new URL(GOOGLE_TOKEN_URI);
 		googleTokenUrl.searchParams.set('code', authCode);
@@ -83,9 +66,20 @@ export async function fetchToken(authCode: string, env: CFEnvT) {
 			method: 'POST',
 			headers: { accept: 'application/json' },
 		});
+		if (!tokensResp.ok) {
+			throw new Error(
+				`Failed to fetch token data: ${tokensResp.status} ${tokensResp.statusText}`,
+			);
+		}
 		// TODO: handle error response
-		const tokenData = (await tokensResp.json()) as TokenResponseT;
-		return tokenData;
+		const tokenData = (await tokensResp.json()) as OritinalTokenResponseT;
+		const userData = await fetchUserInfo(tokenData.access_token);
+
+		if (!userData.verified_email) {
+			throw new Error('User email not verified');
+		}
+
+		return { ...tokenData, user: userData };
 	} catch (error) {
 		console.error('Error fetching token data', error);
 		throw error;

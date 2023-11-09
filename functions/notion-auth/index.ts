@@ -1,7 +1,8 @@
 import { GOOGLE_AUTH_URI, GOOGLE_SCOPES } from '@/constants';
 
-// Redirect user to Google Auth server to provide consent and get token
 export const onRequestGet: PagesFunction<CFEnvT> = ({ env }) => {
+	// Check for jwt token in cookie
+	// Redirect user to Google Auth server to provide consent and get token
 	const googleAuthUrl = new URL(GOOGLE_AUTH_URI);
 	googleAuthUrl.searchParams.set('scope', GOOGLE_SCOPES);
 	googleAuthUrl.searchParams.set('response_type', 'code');

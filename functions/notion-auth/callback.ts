@@ -4,7 +4,7 @@
  */
 
 import jwt from '@tsndr/cloudflare-worker-jwt';
-import * as googleApi from '@/functions-helpers/google-api';
+import * as notionApi from '@/functions-helpers/notion-api';
 
 export const onRequestGet: PagesFunction<CFEnvT> = async ({ request, env }) => {
 	const url = new URL(request.url);
@@ -13,6 +13,7 @@ export const onRequestGet: PagesFunction<CFEnvT> = async ({ request, env }) => {
 
 	if (authError) {
 		// TODO: handle user not provided consent
+		// Possible values: https://datatracker.ietf.org/doc/html/rfc6749#section-4.1.2.1
 		return new Response(`Error: ${authError}`, { status: 400 });
 	}
 
@@ -23,7 +24,7 @@ export const onRequestGet: PagesFunction<CFEnvT> = async ({ request, env }) => {
 	}
 
 	// Exchange auth code for access token
-	const tokenData = await googleApi.fetchToken(authCode, env);
+	const tokenData = await notionApi.fetchToken(authCode, env);
 
 	// Create JWT token for stateless auth and set in cookie
 	// TODO: set expiration time?
@@ -34,7 +35,7 @@ export const onRequestGet: PagesFunction<CFEnvT> = async ({ request, env }) => {
 		statusText: 'Found',
 		headers: {
 			Location: '/',
-			'Set-Cookie': `gtoken=${jwtToken}; HttpOnly; Secure; Path=/;`,
+			'Set-Cookie': `ntoken=${jwtToken}; HttpOnly; Secure; Path=/;`,
 		},
 	});
 };

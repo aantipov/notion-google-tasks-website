@@ -1,36 +1,49 @@
 ---
 import Layout from '@/layouts/Layout.astro';
-import jwt from '@tsndr/cloudflare-worker-jwt';
-import * as googleApi from '@helpers/google-api';
 import Main from '@/components/Main.tsx';
 import type { KVDataT } from '@/types';
+import { getTokensFromCookies } from '@/helpers/getTokens';
 
 export const prerender = false;
 
 // Check if user has authenticated
-const runtime = Astro.locals.runtime;
-const jwtToken = Astro.cookies.get('token');
+const { NOTION_GTASKS_KV, JWT_SECRET } = Astro.locals.runtime.env;
+const gJwtToken = Astro.cookies.get('gtoken')?.value;
+const nJwtToken = Astro.cookies.get('ntoken')?.value;
 let isUserLoggedIn = false;
-let userInfo = null;
-let jwtTokenData = null;
-let kvData = null;
+let kvData: KVDataT | null = null;
 // TODO: verify permissions
-let hasProperGooglePermissions = false;
-if (jwtToken?.value) {
+const { gToken, nToken } = await getTokensFromCookies(
+	gJwtToken,
+	nJwtToken,
+	JWT_SECRET,
+);
+
+// Handle Tokens: Save to KV if not present
+if (gToken) {
+	isUserLoggedIn = true;
+	const userEmail = gToken.user.email;
 	try {
-		const isValid = await jwt.verify(jwtToken.value, runtime.env.JWT_SECRET);
-		jwtTokenData = await jwt.decode(jwtToken.value);
-		userInfo = await googleApi.fetchUserInfo(jwtTokenData.payload.accessToken);
-		kvData = (await runtime.env.NOTION_GTASKS_KV.get(userInfo.email, {
+		kvData = (await NOTION_GTASKS_KV.get(userEmail, {
 			type: 'json',
 		})) as KVDataT;
-		isUserLoggedIn = true;
+		if (!kvData) {
+			// set KV data
+			kvData = { gToken, ...(nToken && { nToken }) } as KVDataT;
+			await NOTION_GTASKS_KV.put(userEmail, JSON.stringify(kvData));
+		} else {
+			// Update KV Data if it misses nToken
+			if (!kvData.nToken && nToken) {
+				kvData.nToken = nToken;
+				await NOTION_GTASKS_KV.put(userEmail, JSON.stringify(kvData));
+			}
+		}
 	} catch (error) {
 		console.error('ERROR', error);
+		kvData = null;
+		isUserLoggedIn = false;
 	}
 }
-
-console.log('isUserLoggedIn', isUserLoggedIn);
 ---
 
 <Layout title="Welcome to Astro.">
@@ -39,7 +52,6 @@ console.log('isUserLoggedIn', isUserLoggedIn);
 		<Main
 			client:load
 			isUserLoggedIn={isUserLoggedIn}
-			jwtTokenData={jwtTokenData}
 			tasklistId={kvData?.gTasksListId}
 		/>
 	</main>

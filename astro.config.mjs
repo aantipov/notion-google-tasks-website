@@ -11,7 +11,7 @@ export default defineConfig({
 		mode: 'directory',
 		routes: {
 			strategy: 'auto',
-			include: ['/google-auth/*', '/api/*'],
+			include: ['/google-auth/*', '/notion-auth/*', '/api/*'],
 		},
 		functionPerRoute: false,
 		runtime: { mode: 'local' },

@@ -1,63 +1,72 @@
-import * as googleApi from '@/helpers/google-api';
+import * as googleApi from '@/functions-helpers/google-api';
 import jwt from '@tsndr/cloudflare-worker-jwt';
-import type { JWTTokenPayloadT } from 'google-auth/callback';
 import type { KVDataPartialT } from '@/types';
 
 interface BodyT {
 	id: string;
 }
+const TASKS_LISTS_URL =
+	'https://tasks.googleapis.com/tasks/v1/users/@me/lists?maxResults=100';
 
 /**
- * Store user-selected tasklist id in KV
+ * Get user's tasklists from Google Tasks
+ * @param param0
+ * @returns
+ */
+export const onRequestGet: PagesFunction<CFEnvT> = async ({ env, request }) => {
+	const gAccessToken = await getGAccessTokenFromCookie(request, env);
+	if (!gAccessToken) {
+		return new Response('Invalid token', { status: 401 });
+	}
+
+	const resp = await fetch(TASKS_LISTS_URL, {
+		method: 'GET',
+		headers: {
+			Authorization: `Bearer ${gAccessToken.access_token}`,
+			accept: 'application/json',
+		},
+	});
+
+	if (!resp.ok) {
+		if (resp.status === 401) {
+			const newResponse = new Response(resp.body, resp);
+			newResponse.headers.set(
+				'Set-Cookie',
+				'gtoken=; HttpOnly; Secure; Path=/;',
+			);
+			return newResponse;
+		}
+	}
+
+	return resp;
+};
+
+/**
+ * Store user-selected Google tasklist id in KV
  */
 export const onRequestPost: PagesFunction<CFEnvT> = async ({
 	env,
 	request,
 	params,
 }) => {
-	// Check for jwt token in cookie
-	const cookieHeader = request.headers.get('Cookie') || '';
-	const cookies = cookieHeader.split('; ').reduce(
-		(acc, cookie) => {
-			const [name, value] = cookie.split('=');
-			acc[name] = value;
-			return acc;
-		},
-		{} as { [key: string]: string },
-	);
-	const jwtToken = cookies['token'];
-
+	const gAccessToken = await getGAccessTokenFromCookie(request, env);
 	const requestBody = (await request.json()) as BodyT;
 	const tasklistId = requestBody.id;
 
 	if (!tasklistId) {
 		return new Response('Invalid request', { status: 400 });
 	}
-
-	let email;
-
-	try {
-		await jwt.verify(jwtToken, env.JWT_SECRET, { throwError: true });
-		const jwtData = await jwt.decode(jwtToken);
-		const payload = jwtData.payload as JWTTokenPayloadT;
-		email = payload.email;
-
-		// Validate if token is still valid by fetching user info
-		await googleApi.fetchUserInfo(payload.accessToken);
-	} catch (error: any) {
-		console.error('Token Validation Error', error);
+	if (!gAccessToken) {
 		return new Response('Invalid token', { status: 401 });
 	}
+
+	const email = gAccessToken.user.email;
 
 	const kvData = await env.NOTION_GTASKS_KV.get<KVDataPartialT>(email, {
 		type: 'json',
 	});
 
-	// Update KV with tasklist id
-	const kvDataUpdated = {
-		...kvData,
-		gTasksListId: tasklistId,
-	};
+	const kvDataUpdated = { ...kvData, gTasksListId: tasklistId };
 
 	console.log('Updating KV with tasklist id', kvDataUpdated);
 
@@ -68,3 +77,29 @@ export const onRequestPost: PagesFunction<CFEnvT> = async ({
 		headers: { 'Content-Type': 'application/json' },
 	});
 };
+
+async function getGAccessTokenFromCookie(req: Request, env: CFEnvT) {
+	const cookieHeader = req.headers.get('Cookie') || '';
+	const cookies = cookieHeader.split('; ').reduce(
+		(acc, cookie) => {
+			const [name, value] = cookie.split('=');
+			acc[name] = value;
+			return acc;
+		},
+		{} as { [key: string]: string },
+	);
+
+	const jwtToken = cookies['gtoken'];
+
+	if (!jwtToken) {
+		return null;
+	}
+
+	const isTokenValid = await jwt.verify(jwtToken, env.JWT_SECRET);
+	if (!isTokenValid) {
+		return null;
+	}
+	const token = await jwt.decode(jwtToken);
+
+	return token.payload as googleApi.GTokenResponseT;
+}

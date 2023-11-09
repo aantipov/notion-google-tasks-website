@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
-import * as googleApi from '@/helpers/google-api';
 import * as api from '@/helpers/api';
-import type { GTasksList } from '@/helpers/google-api';
+import type { GTasksListT } from '@/functions-helpers/google-api';
+import { NOTION_AUTH_URL } from '@/constants';
 
 interface MainProps {
 	isUserLoggedIn: boolean;
-	jwtTokenData: any;
 	tasklistId: string | undefined;
 }
 
@@ -35,12 +34,13 @@ function TaskListOption(props: TaskListOptionProps) {
 }
 
 export default function Main(props: MainProps) {
-	const { isUserLoggedIn, jwtTokenData } = props;
-	const [gTaskLists, setGTaskLists] = useState<GTasksList[]>([]);
-	const [selectedTaskList, setSelectedTaskList] = useState<GTasksList | null>(
+	const { isUserLoggedIn } = props;
+	const [gTaskLists, setGTaskLists] = useState<GTasksListT[]>([]);
+	const [selectedTaskList, setSelectedTaskList] = useState<GTasksListT | null>(
 		null,
 	);
 	const [isTasklistIdSaved, setIsTasklistIdSaved] = useState<boolean>(false);
+	const isNotionConnected = false;
 
 	async function handleSaveTaskList() {
 		if (!selectedTaskList) return;
@@ -50,24 +50,29 @@ export default function Main(props: MainProps) {
 
 	useEffect(() => {
 		async function fetchGTaskLists() {
-			if (isUserLoggedIn && jwtTokenData) {
-				const fetchedGTaskLists = await googleApi.fetchTasksLists(
-					jwtTokenData.payload.accessToken,
-				);
-				setGTaskLists(fetchedGTaskLists);
-				if (props.tasklistId) {
-					const taskList = fetchedGTaskLists.find(
-						(gTaskList) => gTaskList.id === props.tasklistId,
-					);
-					if (taskList) {
-						setSelectedTaskList(taskList);
-						setIsTasklistIdSaved(true);
+			if (isUserLoggedIn) {
+				try {
+					const fetchedGTaskLists = await api.fetchTasksLists();
+					setGTaskLists(fetchedGTaskLists);
+					if (props.tasklistId) {
+						const taskList = fetchedGTaskLists.find(
+							(gTaskList) => gTaskList.id === props.tasklistId,
+						);
+						if (taskList) {
+							setSelectedTaskList(taskList);
+							setIsTasklistIdSaved(true);
+						}
+					}
+				} catch (error: any) {
+					console.error('Error fetching task lists', error);
+					if (error.code !== 401) {
+						// TODO: show error to user and ask them to reload the page
 					}
 				}
 			}
 		}
 		fetchGTaskLists();
-	}, [isUserLoggedIn, jwtTokenData]);
+	}, [isUserLoggedIn]);
 
 	return (
 		<div className="border border-rose-400">
@@ -126,8 +131,20 @@ export default function Main(props: MainProps) {
 					</button>
 				</div>
 			)}
-			<div className="mt-5">3. Connect Notion</div>
-			<div>Use is logged {isUserLoggedIn ? 'ON' : 'OFF'}</div>
+
+			<div className="mt-5">
+				<span>3.&nbsp;</span>
+				{isNotionConnected ? (
+					<span className="text-green-500">Notion Connected</span>
+				) : (
+					<a
+						href={NOTION_AUTH_URL}
+						className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+					>
+						Connect Notion
+					</a>
+				)}
+			</div>
 		</div>
 	);
 }
