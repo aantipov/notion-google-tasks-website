@@ -16,8 +16,17 @@ export interface NTokenResponseT {
 	workspace_id: string;
 	workspace_name: string | null;
 }
+interface NDatabaseT {
+	id: string;
+	title: string;
+}
+export interface NDatabasesResponseT {
+	items: NDatabaseT[];
+}
 
-export async function fetchDatabases(token: string) {
+export async function fetchDatabases(
+	token: string,
+): Promise<NDatabasesResponseT> {
 	try {
 		const notion = new Client({ auth: token });
 
@@ -41,7 +50,7 @@ export async function fetchDatabases(token: string) {
 			};
 		});
 
-		return items;
+		return { items };
 	} catch (error) {
 		console.error('Error fetching databases', error);
 		throw error;

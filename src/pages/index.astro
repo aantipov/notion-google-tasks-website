@@ -2,7 +2,7 @@
 import Layout from '@/layouts/Layout.astro';
 import Main from '@/components/Main.tsx';
 import type { KVDataT } from '@/types';
-import { getTokensFromCookies } from '@/helpers/getTokens';
+import { decodeJWTTokens } from '@/helpers/decodeJWTTokens';
 
 export const prerender = false;
 
@@ -10,18 +10,18 @@ export const prerender = false;
 const { NOTION_GTASKS_KV, JWT_SECRET } = Astro.locals.runtime.env;
 const gJwtToken = Astro.cookies.get('gtoken')?.value;
 const nJwtToken = Astro.cookies.get('ntoken')?.value;
-let isUserLoggedIn = false;
 let kvData: KVDataT | null = null;
 // TODO: verify permissions
-const { gToken, nToken } = await getTokensFromCookies(
+const { gToken, nToken } = await decodeJWTTokens(
 	gJwtToken,
 	nJwtToken,
 	JWT_SECRET,
 );
+let isUserLoggedIn = !!gToken;
+let isNotionConnected = !!nToken;
 
 // Handle Tokens: Save to KV if not present
 if (gToken) {
-	isUserLoggedIn = true;
 	const userEmail = gToken.user.email;
 	try {
 		kvData = (await NOTION_GTASKS_KV.get(userEmail, {
@@ -52,9 +52,12 @@ if (gToken) {
 		<Main
 			client:load
 			isUserLoggedIn={isUserLoggedIn}
+			isNotionConnected={isNotionConnected}
 			tasklistId={kvData?.gTasksListId}
+			databaseId={kvData?.nDatabaseId}
 		/>
 	</main>
 </Layout>
 
 <style></style>
+ @/helpers/decodeJWTTokens

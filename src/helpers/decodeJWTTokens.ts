@@ -8,9 +8,9 @@ interface TokensT {
 /**
  * Get Google and Notion tokens data from JWT cookie
  */
-export async function getTokensFromCookies(
-	gJwtToken: string | undefined,
-	nJwtToken: string | undefined,
+export async function decodeJWTTokens(
+	gJwtToken: string | null | undefined,
+	nJwtToken: string | null | undefined,
 	JWT_SECRET: string,
 ): Promise<TokensT> {
 	const result: TokensT = { gToken: null, nToken: null };

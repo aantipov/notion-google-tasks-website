@@ -10,8 +10,6 @@ const TASKS_LISTS_URL =
 
 /**
  * Get user's tasklists from Google Tasks
- * @param param0
- * @returns
  */
 export const onRequestGet: PagesFunction<CFEnvT> = async ({ env, request }) => {
 	const gAccessToken = await getGAccessTokenFromCookie(request, env);

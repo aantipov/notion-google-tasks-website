@@ -1,14 +1,24 @@
 import { useEffect, useState } from 'react';
 import * as api from '@/helpers/api';
 import type { GTasksListT } from '@/functions-helpers/google-api';
+import type { NDatabasesResponseT } from '@/functions-helpers/notion-api';
 import { NOTION_AUTH_URL } from '@/constants';
 
 interface MainProps {
 	isUserLoggedIn: boolean;
+	isNotionConnected: boolean;
 	tasklistId: string | undefined;
+	databaseId: string | undefined;
 }
 
 interface TaskListOptionProps {
+	id: string;
+	title: string;
+	selected: boolean;
+	onSelect: () => void;
+}
+
+interface DatabaseOptionProps {
 	id: string;
 	title: string;
 	selected: boolean;
@@ -33,19 +43,47 @@ function TaskListOption(props: TaskListOptionProps) {
 	);
 }
 
+function DatabaseOption(props: DatabaseOptionProps) {
+	const { id, title, onSelect, selected } = props;
+
+	return (
+		<div>
+			<input
+				type="radio"
+				id={id}
+				name="taskList"
+				value={id}
+				checked={selected}
+				onChange={onSelect}
+			/>
+			<label htmlFor={id}>{title}</label>
+		</div>
+	);
+}
+
 export default function Main(props: MainProps) {
-	const { isUserLoggedIn } = props;
+	const { isUserLoggedIn, isNotionConnected } = props;
 	const [gTaskLists, setGTaskLists] = useState<GTasksListT[]>([]);
+	const [databases, setDatabases] = useState<NDatabasesResponseT['items']>([]);
 	const [selectedTaskList, setSelectedTaskList] = useState<GTasksListT | null>(
 		null,
 	);
+	const [selectedDatabase, setSelectedDatabase] = useState<
+		NDatabasesResponseT['items'][number] | null
+	>(null);
 	const [isTasklistIdSaved, setIsTasklistIdSaved] = useState<boolean>(false);
-	const isNotionConnected = false;
+	const [isDatabaseIdSaved, setIsDatabaseIdSaved] = useState<boolean>(false);
 
 	async function handleSaveTaskList() {
 		if (!selectedTaskList) return;
 		await api.saveTaskList(selectedTaskList.id);
 		setIsTasklistIdSaved(true);
+	}
+
+	async function handleSaveDatabase() {
+		if (!selectedDatabase) return;
+		await api.saveDatabase(selectedDatabase.id);
+		setIsDatabaseIdSaved(true);
 	}
 
 	useEffect(() => {
@@ -74,6 +112,33 @@ export default function Main(props: MainProps) {
 		fetchGTaskLists();
 	}, [isUserLoggedIn]);
 
+	useEffect(() => {
+		async function fetchDatabases() {
+			if (isNotionConnected) {
+				try {
+					const { items: databases } = await api.fetchDatabases();
+					console.log('databases', JSON.stringify(databases, null, 2));
+					setDatabases(databases);
+					if (props.databaseId) {
+						const database = databases.find(
+							(gTaskList) => gTaskList.id === props.tasklistId,
+						);
+						if (database) {
+							setSelectedDatabase(database);
+							setIsDatabaseIdSaved(true);
+						}
+					}
+				} catch (error: any) {
+					console.error('Error fetching databases', error);
+					if (error.code !== 401) {
+						// TODO: show error to user and ask them to reload the page
+					}
+				}
+			}
+		}
+		fetchDatabases();
+	}, [isNotionConnected]);
+
 	return (
 		<div className="border border-rose-400">
 			<div className="mt-5">
@@ -100,6 +165,7 @@ export default function Main(props: MainProps) {
 					'Choose Google Task List to sync with Notion'
 				)}
 			</div>
+
 			{!isTasklistIdSaved && (
 				<div className="my-5">
 					{gTaskLists.map((gTaskList) => (
@@ -144,6 +210,25 @@ export default function Main(props: MainProps) {
 						Connect Notion
 					</a>
 				)}
+			</div>
+
+			<div className="my-5">
+				{databases.map((database) => (
+					<DatabaseOption
+						key={database.id}
+						id={database.id}
+						title={database.title}
+						selected={selectedDatabase?.id === database.id}
+						onSelect={() => setSelectedDatabase(database)}
+					/>
+				))}
+
+				<button
+					onClick={handleSaveDatabase}
+					className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+				>
+					Save Database
+				</button>
 			</div>
 		</div>
 	);
