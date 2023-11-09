@@ -2,7 +2,7 @@ import * as notionApi from '@/functions-helpers/notion-api';
 import { parseRequestCookies } from '@/helpers/parseRequestCookies';
 import { decodeJWTTokens } from '@/helpers/decodeJWTTokens';
 import jwt from '@tsndr/cloudflare-worker-jwt';
-import type { KVDataPartialT } from '@/types';
+import type { KVDataPartialT, KVDataT } from '@/types';
 
 interface BodyT {
 	id: string;
@@ -46,11 +46,11 @@ export const onRequestPost: PagesFunction<CFEnvT> = async ({
 
 	const email = gToken.user.email;
 
-	const kvData = await env.NOTION_GTASKS_KV.get<KVDataPartialT>(email, {
+	const kvData = (await env.NOTION_GTASKS_KV.get<KVDataPartialT>(email, {
 		type: 'json',
-	});
+	})) as KVDataT;
 
-	const kvDataUpdated = { ...kvData, databaseId };
+	const kvDataUpdated = { ...kvData, databaseId } as KVDataT;
 
 	console.log('Updating KV with database id', kvDataUpdated);
 

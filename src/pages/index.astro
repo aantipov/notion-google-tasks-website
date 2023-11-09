@@ -18,7 +18,6 @@ const { gToken, nToken } = await decodeJWTTokens(
 	JWT_SECRET,
 );
 let isUserLoggedIn = !!gToken;
-let isNotionConnected = !!nToken;
 
 // Handle Tokens: Save to KV if not present
 if (gToken) {
@@ -29,12 +28,18 @@ if (gToken) {
 		})) as KVDataT;
 		if (!kvData) {
 			// set KV data
-			kvData = { gToken, ...(nToken && { nToken }) } as KVDataT;
+			kvData = {
+				gToken,
+				...(nToken && { nToken }),
+				created: new Date().toISOString(),
+				modified: new Date().toISOString(),
+			} as KVDataT;
 			await NOTION_GTASKS_KV.put(userEmail, JSON.stringify(kvData));
 		} else {
 			// Update KV Data if it misses nToken
 			if (!kvData.nToken && nToken) {
 				kvData.nToken = nToken;
+				kvData.modified = new Date().toISOString();
 				await NOTION_GTASKS_KV.put(userEmail, JSON.stringify(kvData));
 			}
 		}
@@ -44,6 +49,7 @@ if (gToken) {
 		isUserLoggedIn = false;
 	}
 }
+const isNotionConnected = !!kvData?.nToken;
 ---
 
 <Layout title="Welcome to Astro.">
@@ -53,11 +59,10 @@ if (gToken) {
 			client:load
 			isUserLoggedIn={isUserLoggedIn}
 			isNotionConnected={isNotionConnected}
-			tasklistId={kvData?.gTasksListId}
-			databaseId={kvData?.nDatabaseId}
+			tasklistId={kvData?.tasksListId}
+			databaseId={kvData?.databaseId}
 		/>
 	</main>
 </Layout>
 
 <style></style>
- @/helpers/decodeJWTTokens

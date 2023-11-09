@@ -1,6 +1,6 @@
 import * as googleApi from '@/functions-helpers/google-api';
 import jwt from '@tsndr/cloudflare-worker-jwt';
-import type { KVDataPartialT } from '@/types';
+import type { KVDataPartialT, KVDataT } from '@/types';
 
 interface BodyT {
 	id: string;
@@ -60,11 +60,14 @@ export const onRequestPost: PagesFunction<CFEnvT> = async ({
 
 	const email = gAccessToken.user.email;
 
-	const kvData = await env.NOTION_GTASKS_KV.get<KVDataPartialT>(email, {
+	const kvData = (await env.NOTION_GTASKS_KV.get<KVDataPartialT>(email, {
 		type: 'json',
-	});
+	})) as KVDataT;
 
-	const kvDataUpdated = { ...kvData, gTasksListId: tasklistId };
+	const kvDataUpdated = {
+		...kvData,
+		tasksListId: tasklistId,
+	} as KVDataT;
 
 	console.log('Updating KV with tasklist id', kvDataUpdated);
 

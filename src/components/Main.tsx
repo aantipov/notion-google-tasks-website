@@ -117,12 +117,9 @@ export default function Main(props: MainProps) {
 			if (isNotionConnected) {
 				try {
 					const { items: databases } = await api.fetchDatabases();
-					console.log('databases', JSON.stringify(databases, null, 2));
 					setDatabases(databases);
 					if (props.databaseId) {
-						const database = databases.find(
-							(gTaskList) => gTaskList.id === props.tasklistId,
-						);
+						const database = databases.find((db) => db.id === props.databaseId);
 						if (database) {
 							setSelectedDatabase(database);
 							setIsDatabaseIdSaved(true);
@@ -212,24 +209,49 @@ export default function Main(props: MainProps) {
 				)}
 			</div>
 
-			<div className="my-5">
-				{databases.map((database) => (
-					<DatabaseOption
-						key={database.id}
-						id={database.id}
-						title={database.title}
-						selected={selectedDatabase?.id === database.id}
-						onSelect={() => setSelectedDatabase(database)}
-					/>
-				))}
-
-				<button
-					onClick={handleSaveDatabase}
-					className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-				>
-					Save Database
-				</button>
+			<div className="mt-5">
+				4.&nbsp;
+				{isDatabaseIdSaved ? (
+					<span className="text-green-500">
+						Database Saved: "{selectedDatabase?.title}"
+					</span>
+				) : (
+					'Choose Notion Database to sync with Google Tasks'
+				)}
 			</div>
+
+			{!isDatabaseIdSaved && (
+				<div className="my-5">
+					{databases.map((database) => (
+						<DatabaseOption
+							key={database.id}
+							id={database.id}
+							title={database.title}
+							selected={selectedDatabase?.id === database.id}
+							onSelect={() => setSelectedDatabase(database)}
+						/>
+					))}
+
+					<button
+						onClick={handleSaveDatabase}
+						className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+					>
+						Save Database
+					</button>
+				</div>
+			)}
+
+			{/* Show this button only if there are more than one database */}
+			{isDatabaseIdSaved && databases.length > 1 && (
+				<div className="mt-5">
+					<button
+						onClick={() => setIsDatabaseIdSaved(false)}
+						className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+					>
+						Change Database
+					</button>
+				</div>
+			)}
 		</div>
 	);
 }
