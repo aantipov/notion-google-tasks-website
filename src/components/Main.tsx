@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import * as api from '@/helpers/api';
 import type { GTasksListT } from '@/functions-helpers/google-api';
-import type { NDatabasesResponseT } from '@/functions-helpers/notion-api';
+import type {
+	NDatabasesResponseT,
+	NTaskT,
+} from '@/functions-helpers/notion-api';
 import { NOTION_AUTH_URL } from '@/constants';
 import type { GTaskT } from '@/helpers/api';
 
@@ -66,6 +69,7 @@ export default function Main(props: MainProps) {
 	const { isUserLoggedIn, isNotionConnected } = props;
 	const [gTaskLists, setGTaskLists] = useState<GTasksListT[]>([]);
 	const [gTasks, setGTasks] = useState<GTaskT[]>([]);
+	const [nTasks, setNTasks] = useState<NTaskT[]>([]);
 	const [databases, setDatabases] = useState<NDatabasesResponseT['items']>([]);
 	const [selectedTaskList, setSelectedTaskList] = useState<GTasksListT | null>(
 		null,
@@ -104,6 +108,27 @@ export default function Main(props: MainProps) {
 		}
 		fetchGTasks();
 	}, [isTasklistIdSaved]);
+
+	useEffect(() => {
+		async function fetchNTasks() {
+			if (isUserLoggedIn) {
+				try {
+					const nTasks = await api.fetchNTasks();
+					setNTasks(nTasks);
+				} catch (error: any) {
+					console.error('Error fetching task lists', error);
+					if (error.code !== 401) {
+						// TODO: show error to user and ask them to reload the page
+					}
+				}
+			}
+		}
+		if (isDatabaseIdSaved) {
+			fetchNTasks();
+		} else {
+			setNTasks([]);
+		}
+	}, [isDatabaseIdSaved]);
 
 	useEffect(() => {
 		async function fetchGTaskLists() {
@@ -282,8 +307,15 @@ export default function Main(props: MainProps) {
 						))}
 					</ul>
 				</div>
+
 				<div>The following Notion Tasks will be created in Google Tasks</div>
-				<div>TODO</div>
+				<div>
+					<ul>
+						{nTasks.map((nTask) => (
+							<li key={nTask.id}>• {nTask.title}</li>
+						))}
+					</ul>
+				</div>
 				<div className="mt-5">
 					<button
 						onClick={() => {}}

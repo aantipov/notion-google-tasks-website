@@ -1,4 +1,7 @@
-import type { NDatabasesResponseT } from '@/functions-helpers/notion-api';
+import type {
+	NDatabasesResponseT,
+	NTaskT,
+} from '@/functions-helpers/notion-api';
 
 export interface GTasksListT {
 	id: string;
@@ -79,5 +82,16 @@ export async function fetchGTasks(): Promise<GTaskT[]> {
 		throw error;
 	}
 	const data = (await response.json()) as { items: GTaskT[] };
+	return data.items;
+}
+
+export async function fetchNTasks(): Promise<NTaskT[]> {
+	const response = await fetch('/api/notion-tasks');
+	if (!response.ok) {
+		const error = new Error(response.statusText) as any;
+		error.code = response.status;
+		throw error;
+	}
+	const data = (await response.json()) as { items: NTaskT[] };
 	return data.items;
 }
