@@ -3,6 +3,7 @@ import * as api from '@/helpers/api';
 import type { GTasksListT } from '@/functions-helpers/google-api';
 import type { NDatabasesResponseT } from '@/functions-helpers/notion-api';
 import { NOTION_AUTH_URL } from '@/constants';
+import type { GTaskT } from '@/helpers/api';
 
 interface MainProps {
 	isUserLoggedIn: boolean;
@@ -64,6 +65,7 @@ function DatabaseOption(props: DatabaseOptionProps) {
 export default function Main(props: MainProps) {
 	const { isUserLoggedIn, isNotionConnected } = props;
 	const [gTaskLists, setGTaskLists] = useState<GTasksListT[]>([]);
+	const [gTasks, setGTasks] = useState<GTaskT[]>([]);
 	const [databases, setDatabases] = useState<NDatabasesResponseT['items']>([]);
 	const [selectedTaskList, setSelectedTaskList] = useState<GTasksListT | null>(
 		null,
@@ -85,6 +87,23 @@ export default function Main(props: MainProps) {
 		await api.saveDatabase(selectedDatabase.id);
 		setIsDatabaseIdSaved(true);
 	}
+
+	useEffect(() => {
+		async function fetchGTasks() {
+			if (isUserLoggedIn) {
+				try {
+					const gTasks = await api.fetchGTasks();
+					setGTasks(gTasks);
+				} catch (error: any) {
+					console.error('Error fetching task lists', error);
+					if (error.code !== 401) {
+						// TODO: show error to user and ask them to reload the page
+					}
+				}
+			}
+		}
+		fetchGTasks();
+	}, [isTasklistIdSaved]);
 
 	useEffect(() => {
 		async function fetchGTaskLists() {
@@ -252,6 +271,28 @@ export default function Main(props: MainProps) {
 					</button>
 				</div>
 			)}
+
+			<div className="mt-5">
+				<div>5.&nbsp; Initial synchronization</div>
+				<div>The following Google Tasks will be created in Notion</div>
+				<div>
+					<ul>
+						{gTasks.map((gTask) => (
+							<li key={gTask.id}>• {gTask.title}</li>
+						))}
+					</ul>
+				</div>
+				<div>The following Notion Tasks will be created in Google Tasks</div>
+				<div>TODO</div>
+				<div className="mt-5">
+					<button
+						onClick={() => {}}
+						className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+					>
+						Let's SYNC
+					</button>
+				</div>
+			</div>
 		</div>
 	);
 }
