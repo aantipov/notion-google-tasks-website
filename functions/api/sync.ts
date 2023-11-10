@@ -78,11 +78,13 @@ export const onRequestPost: PagesFunction<CFEnvT> = async ({
 		kvData.nToken.access_token,
 	);
 	console.log('nIdTuples', JSON.stringify(nIdTuples, null, 2));
-	// const gIdTuples = await createAllGoogleTasks(
-	// 	nTasks,
-	// 	gTasksListId,
-	// 	gAccessToken,
-	// );
+
+	const gIdTuples = await googleApi.createAllGoogleTasks(
+		nTasks,
+		kvData.tasksListId,
+		kvData.gToken.access_token,
+	);
+	console.log('gIdTuples', JSON.stringify(gIdTuples, null, 2));
 
 	return new Response(JSON.stringify({ hello: 'hello' }), {
 		status: 200,

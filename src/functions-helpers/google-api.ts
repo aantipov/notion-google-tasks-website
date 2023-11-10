@@ -7,8 +7,10 @@ import {
 	GOOGLE_MAX_TASKS,
 	GOOGLE_TOKEN_URI,
 	GOOGLE_USERINFO_URL,
+	NOTION_RATE_LIMIT,
 } from '@/constants';
 import type { GTaskT } from '@/helpers/api';
+import type { NTaskT } from './notion-api';
 
 export interface GTasksResponseT {
 	nextPageToken?: string;
@@ -62,6 +64,68 @@ export async function fetchOpenTasks(
 		throw error;
 	}
 	return await resp.json();
+}
+
+type GTaskIdT = string;
+type NTaskIdT = string;
+type IdTupleT = [GTaskIdT, NTaskIdT];
+
+export async function createAllGoogleTasks(
+	nTasks: NTaskT[],
+	gTasksListId: string,
+	accessToken: string,
+): Promise<IdTupleT[]> {
+	const promises = [];
+	for (let i = 0; i < nTasks.length; i++) {
+		const promise: Promise<IdTupleT> = new Promise((resolveTask) => {
+			setTimeout(
+				async () => {
+					const nTask = nTasks[i];
+					const gTask = await createTask(nTask, gTasksListId, accessToken);
+					resolveTask([gTask.id, nTask.id]);
+				},
+				Math.floor(i / NOTION_RATE_LIMIT) * 1000,
+			);
+		});
+		promises.push(promise);
+	}
+	return Promise.all(promises);
+}
+
+async function createTask(
+	nTask: NTaskT,
+	gTasksListId: string,
+	accessToken: string, // access token
+): Promise<GTaskT> {
+	console.log('Creating Google task', nTask.title);
+	try {
+		const tasksAPIUrl = new URL(
+			`https://tasks.googleapis.com/tasks/v1/lists/${gTasksListId}/tasks`,
+		);
+
+		const tasksResp = await fetch(tasksAPIUrl.toString(), {
+			method: 'POST',
+			headers: {
+				Authorization: `Bearer ${accessToken}`,
+				accept: 'application/json',
+			},
+			body: JSON.stringify({
+				title: nTask.title,
+				due: nTask.due?.start ? new Date(nTask.due.start).toISOString() : null,
+				status: nTask.status === 'Done' ? 'completed' : 'needsAction',
+			}),
+		});
+		if (!tasksResp.ok) {
+			throw new Error(
+				`Failed to create a Google task: ${tasksResp.status} ${tasksResp.statusText}`,
+			);
+		}
+		const resp = await tasksResp.json();
+		return resp as GTaskT;
+	} catch (error) {
+		console.error('Error creating a google task', error);
+		throw error;
+	}
 }
 
 async function fetchUserInfo(accessToken: string): Promise<UserInfoResponseT> {
