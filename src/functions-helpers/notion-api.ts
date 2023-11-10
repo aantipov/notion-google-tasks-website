@@ -4,6 +4,8 @@
  */
 import { Buffer } from 'node:buffer';
 import { Client } from '@notionhq/client';
+import type { GTaskT } from '@/helpers/api';
+import { NOTION_RATE_LIMIT } from '@/constants';
 
 const TOKEN_URL = 'https://api.notion.com/v1/oauth/token';
 
@@ -49,7 +51,10 @@ export interface NPropsMapT {
 	lastEditedBy: { id: string; name: string; type: 'last_edited_by' };
 }
 
-export async function fetchTasks(
+/**
+ * Fetch open tasks for initial sync
+ */
+export async function fetchOpenTasks(
 	databaseId: string,
 	propsMap: NPropsMapT,
 	token: string,
@@ -61,8 +66,14 @@ export async function fetchTasks(
 	const response = await notion.databases.query({
 		database_id: databaseId,
 		archived: true,
-		filter_properties: filterProps, // ['title', 'utq%3E', '%5EOE%40', 'VvGP', 'NkZS'], // 'Last edited by'],
+		filter_properties: filterProps,
 		page_size: 100,
+		filter: {
+			property: propsMap.status.name,
+			status: {
+				equals: 'To Do',
+			},
+		},
 		sorts: [
 			{
 				property: propsMap.lastEdited.id,
@@ -103,6 +114,66 @@ export async function fetchTasks(
 	}));
 
 	return { databaseId, items: tasks };
+}
+
+type GTaskIdT = string;
+type NTaskIdT = string;
+type IdTupleT = [GTaskIdT, NTaskIdT];
+
+export async function createAllTasks(
+	gTasks: GTaskT[],
+	databaseId: string,
+	propsMap: NPropsMapT,
+	acdessToken: string,
+): Promise<IdTupleT[]> {
+	const promises = [];
+	for (let i = 0; i < gTasks.length; i++) {
+		const promise: Promise<IdTupleT> = new Promise((resolveTask) => {
+			setTimeout(
+				async () => {
+					const gTask = gTasks[i];
+					const nTask = await createTask(
+						gTask,
+						databaseId,
+						propsMap,
+						acdessToken,
+					);
+					resolveTask([gTask.id, nTask.id]);
+				},
+				Math.floor(i / NOTION_RATE_LIMIT) * 1000,
+			);
+		});
+		promises.push(promise);
+	}
+	return Promise.all(promises);
+}
+
+async function createTask(
+	gTask: GTaskT,
+	databaseId: string,
+	propsMap: NPropsMapT,
+	accessToken: string,
+) {
+	console.log('Creating Notion task', gTask.title);
+	try {
+		const notion = new Client({ auth: accessToken });
+		const date = gTask.due ? { start: gTask.due.slice(0, 10) } : null;
+		const properties = {
+			[propsMap.title.name]: { title: [{ text: { content: gTask.title } }] },
+			[propsMap.due.name]: { date },
+			[propsMap.status.name]: {
+				status: { name: gTask.status === 'completed' ? 'Done' : 'To Do' },
+			},
+		};
+		const response = await notion.pages.create({
+			parent: { database_id: databaseId },
+			properties,
+		});
+		return response;
+	} catch (error) {
+		console.error('Error creating Notion task', error);
+		throw error;
+	}
 }
 
 export async function fetchDatabases(

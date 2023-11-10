@@ -299,7 +299,7 @@ export default function Main(props: MainProps) {
 
 			<div className="mt-5">
 				<div>5.&nbsp; Initial synchronization</div>
-				<div>The following Google Tasks will be created in Notion</div>
+				<div>The following open Google Tasks will be created in Notion</div>
 				<div>
 					<ul>
 						{gTasks.map((gTask) => (
@@ -312,13 +312,15 @@ export default function Main(props: MainProps) {
 				<div>
 					<ul>
 						{nTasks.map((nTask) => (
-							<li key={nTask.id}>• {nTask.title}</li>
+							<li key={nTask.id}>
+								• {nTask.title} Status: ${nTask.status}
+							</li>
 						))}
 					</ul>
 				</div>
 				<div className="mt-5">
 					<button
-						onClick={() => {}}
+						onClick={() => api.sync()}
 						className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
 					>
 						Let's SYNC

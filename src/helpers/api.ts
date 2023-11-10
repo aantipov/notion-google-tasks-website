@@ -47,6 +47,19 @@ export async function saveDatabase(id: string) {
 	return await response.json();
 }
 
+export async function sync() {
+	const response = await fetch('/api/sync', {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+	});
+	if (!response.ok) {
+		const error = new Error(response.statusText) as any;
+		error.code = response.status;
+		throw error;
+	}
+	return await response.json();
+}
+
 export async function fetchTasksLists(): Promise<GTasksListT[]> {
 	const response = await fetch('/api/tasklists');
 	if (!response.ok) {

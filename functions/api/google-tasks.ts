@@ -38,44 +38,32 @@ export const onRequestGet: PagesFunction<CFEnvT> = async ({ env, request }) => {
 	try {
 		const kvData = (await env.NOTION_GTASKS_KV.get<KVDataPartialT>(
 			gToken.user.email,
-			{
-				type: 'json',
-			},
+			{ type: 'json' },
 		)) as KVDataT;
 
 		if (!kvData.tasksListId) {
 			return new Response('No tasklist selected', { status: 400 });
 		}
 
-		const tasksAPIUrl = new URL(
-			`https://tasks.googleapis.com/tasks/v1/lists/${kvData.tasksListId}/tasks`,
+		const res = await googleApi.fetchOpenTasks(
+			kvData.tasksListId,
+			gToken.access_token,
 		);
-		tasksAPIUrl.searchParams.set('maxResults', GOOGLE_MAX_TASKS.toString());
 
-		const resp = await fetch(tasksAPIUrl.toString(), {
-			method: 'GET',
-			headers: {
-				Authorization: `Bearer ${gToken.access_token}`,
-				accept: 'application/json',
-			},
+		return new Response(JSON.stringify(res), {
+			status: 200,
+			headers: { 'Content-Type': 'application/json' },
 		});
-		if (!resp.ok) {
-			if (resp.status === 401) {
-				const newResponse = new Response(resp.body, resp);
-				newResponse.headers.set(
-					'Set-Cookie',
-					'gtoken=; HttpOnly; Secure; Path=/;',
-				);
-				return newResponse;
-			}
-			throw new Error(
-				`Failed to fetch Google tasks: ${resp.status} ${resp.statusText}`,
-			);
-		}
-
-		return resp;
-	} catch (error) {
+	} catch (error: any) {
 		console.error('Error fetching google tasks', error);
+		if (error?.code === 401) {
+			return new Response('Invalid token', {
+				status: 401,
+				headers: {
+					'Set-Cookie': 'gtoken=; HttpOnly; Secure; Path=/;',
+				},
+			});
+		}
 		return new Response('Error fetching google tasks', { status: 500 });
 	}
 };

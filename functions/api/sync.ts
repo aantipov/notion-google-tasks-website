@@ -1,9 +1,11 @@
 import * as notionApi from '@/functions-helpers/notion-api';
+import * as googleApi from '@/functions-helpers/google-api';
 import { parseRequestCookies } from '@/helpers/parseRequestCookies';
 import { decodeJWTTokens } from '@/helpers/decodeJWTTokens';
 import type { KVDataPartialT, KVDataT } from '@/types';
+import type { GTaskT } from './google-tasks';
 
-export interface NPropsMapT {
+interface NPropsMapT {
 	title: { id: string; name: string; type: 'title' };
 	status: { id: string; name: string; type: 'status' };
 	due: { id: string; name: string; type: 'date' };
@@ -14,7 +16,10 @@ export interface NPropsMapT {
 /**
  * Get user notion's dabaseses list
  */
-export const onRequestGet: PagesFunction<CFEnvT> = async ({ env, request }) => {
+export const onRequestPost: PagesFunction<CFEnvT> = async ({
+	env,
+	request,
+}) => {
 	const { gToken } = await getTokensFromCookie(request, env);
 
 	if (!gToken) {
@@ -53,13 +58,33 @@ export const onRequestGet: PagesFunction<CFEnvT> = async ({ env, request }) => {
 		),
 	} as NPropsMapT;
 
-	const tasks = await notionApi.fetchOpenTasks(
+	const { items: nTasks } = await notionApi.fetchOpenTasks(
 		kvData.databaseId,
 		nPropsMap,
 		kvData.nToken.access_token,
 	);
+	const { items: gTasks } = await googleApi.fetchOpenTasks(
+		kvData.tasksListId,
+		gToken.access_token,
+	);
 
-	return new Response(JSON.stringify(tasks), {
+	console.log('nTasks', JSON.stringify(nTasks, null, 2));
+	console.log('gTasks', JSON.stringify(gTasks, null, 2));
+
+	const nIdTuples = await notionApi.createAllTasks(
+		gTasks,
+		kvData.databaseId,
+		nPropsMap,
+		kvData.nToken.access_token,
+	);
+	console.log('nIdTuples', JSON.stringify(nIdTuples, null, 2));
+	// const gIdTuples = await createAllGoogleTasks(
+	// 	nTasks,
+	// 	gTasksListId,
+	// 	gAccessToken,
+	// );
+
+	return new Response(JSON.stringify({ hello: 'hello' }), {
 		status: 200,
 		headers: { 'Content-Type': 'application/json' },
 	});

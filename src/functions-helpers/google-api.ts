@@ -3,7 +3,17 @@
  * IMPORTANT: This file is to be used by Server Functions only!
  */
 
-import { GOOGLE_TOKEN_URI, GOOGLE_USERINFO_URL } from '@/constants';
+import {
+	GOOGLE_MAX_TASKS,
+	GOOGLE_TOKEN_URI,
+	GOOGLE_USERINFO_URL,
+} from '@/constants';
+import type { GTaskT } from '@/helpers/api';
+
+export interface GTasksResponseT {
+	nextPageToken?: string;
+	items: GTaskT[];
+}
 
 interface UserInfoResponseT {
 	id: string;
@@ -27,6 +37,31 @@ export interface GTokenResponseT extends OritinalTokenResponseT {
 export interface GTasksListT {
 	id: string;
 	title: string;
+}
+
+/**
+ * Fetch open tasks for initial sync
+ */
+export async function fetchOpenTasks(
+	tasksListId: string,
+	token: string,
+): Promise<GTasksResponseT> {
+	const tasksAPIUrl = new URL(
+		`https://tasks.googleapis.com/tasks/v1/lists/${tasksListId}/tasks`,
+	);
+	tasksAPIUrl.searchParams.set('maxResults', GOOGLE_MAX_TASKS.toString());
+	tasksAPIUrl.searchParams.set('showCompleted', 'false');
+
+	const resp = await fetch(tasksAPIUrl.toString(), {
+		method: 'GET',
+		headers: { Authorization: `Bearer ${token}`, accept: 'application/json' },
+	});
+	if (!resp.ok) {
+		const error = new Error(resp.statusText) as any;
+		error.code = resp.status;
+		throw error;
+	}
+	return await resp.json();
 }
 
 async function fetchUserInfo(accessToken: string): Promise<UserInfoResponseT> {
