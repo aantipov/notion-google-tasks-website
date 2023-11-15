@@ -158,7 +158,7 @@ export default function Main(props: MainProps) {
 
 	return (
 		<QueryClientProvider client={queryClient}>
-			<div className="mt-8 flex w-[80%] max-w-lg flex-wrap justify-center gap-4 border border-rose-400">
+			<div className="mt-8 w-[80%] max-w-lg  border border-rose-400">
 				<ConnectGoogle hasToken={props.hasToken} />
 
 				{/* <div className="mt-5 opacity-40">

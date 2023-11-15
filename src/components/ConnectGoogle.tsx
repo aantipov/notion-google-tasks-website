@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react';
-import * as api from '@/helpers/api';
+import {
+	useUserQuery,
+	useTasksListsQuery,
+	useTasksListsMutation,
+} from '@/helpers/api';
 
 interface MainProps {
 	hasToken: boolean;
@@ -30,10 +34,39 @@ export function TaskListOption(props: TaskListOptionProps) {
 	);
 }
 
+export function Step({
+	state = 'not-connected',
+}: {
+	state?: 'not-connected' | 'in-progress' | 'connected';
+}) {
+	const [linkClicked, setLinkClicked] = useState<boolean>(false);
+	const linkOpacity = linkClicked ? 'opacity-40' : '';
+	return (
+		<div className="flex w-full items-center">
+			<span className="text-2xl">Step 1.&nbsp;</span>
+			{state === 'not-connected' && (
+				<a
+					href="/google-auth"
+					onClick={() => setLinkClicked(true)}
+					className={`${linkOpacity} rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700`}
+				>
+					Connect Google Tasks
+				</a>
+			)}
+			{state === 'in-progress' && (
+				<span className="text-xl">Google Tasks Connection</span>
+			)}
+			{state === 'connected' && (
+				<span className="text-xl text-green-600">Google Tasks Connected</span>
+			)}
+		</div>
+	);
+}
+
 export default function ConnectGoogle(props: MainProps) {
-	const userQuery = api.userQuery(props.hasToken);
-	const tasksListsQuery = api.tasksListsQuery(props.hasToken);
-	const tasksListsMutation = api.tasksListsMutation();
+	const userQuery = useUserQuery(props.hasToken);
+	const tasksListsQuery = useTasksListsQuery(props.hasToken);
+	const tasksListsMutation = useTasksListsMutation();
 	const [userSelectedTaskListId, setUserSelectedTaskListId] = useState<
 		string | null
 	>(null);
@@ -59,31 +92,13 @@ export default function ConnectGoogle(props: MainProps) {
 
 	return (
 		<div className="mt-5">
-			{!props.hasToken && (
-				<div className="w-full">
-					<span className="text-2xl"> Step 1.&nbsp;</span>
-					<a
-						href="/google-auth"
-						className="rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
-					>
-						Connect Google Tasks
-					</a>
-				</div>
-			)}
+			{!props.hasToken && <Step />}
 
 			{/* Handle user has not given enough rights */}
 			{/* @ts-ignore */}
 			{props.hasToken && userQuery.error && userQuery.error?.code === 403 && (
 				<div className="w-full">
-					<div>
-						<span className="text-2xl"> Step 1.&nbsp;</span>
-						<a
-							href="/google-auth"
-							className="rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
-						>
-							Connect Google Tasks
-						</a>
-					</div>
+					<Step />
 					<div className="mt-5 text-orange-500">
 						Not Enough Permissions. We need to access your Google Tasks. Please
 						click "Connect Google Tasks" and give us access.
@@ -96,8 +111,7 @@ export default function ConnectGoogle(props: MainProps) {
 				tasksListsQuery.data && (
 					// @ts-ignore
 					<div className="w-full">
-						<span className="text-2xl">Step 1.&nbsp;</span>
-						<span className="text-xl">Google Tasks Connection</span>
+						<Step state="in-progress" />
 
 						<div className="mt-1 text-orange-500">
 							Multiple taskslists found. Choose the one you want to sync with
@@ -155,12 +169,7 @@ export default function ConnectGoogle(props: MainProps) {
 
 			{selectedTaskList && userWantChangeTasklist && tasksListsQuery.data && (
 				<div className="w-full">
-					<div>
-						<span className="text-2xl">Step 1.&nbsp;</span>
-						<span className="text-xl text-green-600">
-							Google Tasks Connected
-						</span>
-					</div>
+					<Step state="connected" />
 
 					<div className="my-1">
 						{tasksListsQuery.data.map((gTaskList) => (

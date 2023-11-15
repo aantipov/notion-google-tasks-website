@@ -32,7 +32,7 @@ export interface GTaskT {
 	hidden?: boolean;
 }
 
-export const userQuery = (enabled: boolean = true) =>
+export const useUserQuery = (enabled: boolean = true) =>
 	useQuery({
 		queryKey: ['user'],
 		queryFn: async () => {
@@ -53,7 +53,7 @@ export const userQuery = (enabled: boolean = true) =>
 		enabled,
 	});
 
-export const tasksListsQuery = (enabled: boolean = true) =>
+export const useTasksListsQuery = (enabled: boolean = true) =>
 	useQuery({
 		queryKey: ['taskslists'],
 		queryFn: async () => {
@@ -76,7 +76,7 @@ export const tasksListsQuery = (enabled: boolean = true) =>
 		enabled,
 	});
 
-export const tasksListsMutation = (enabled: boolean = true) => {
+export const useTasksListsMutation = (enabled: boolean = true) => {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: async ({ id }: { id: string }) => {
