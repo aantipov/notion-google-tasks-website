@@ -2,73 +2,49 @@
 import Layout from '@/layouts/Layout.astro';
 import Hero from '@/components/Hero/Hero.astro';
 import Main from '@/components/Main.tsx';
-import type { KVDataT } from '@/types';
 import { decodeJWTTokens } from '@/helpers/decodeJWTTokens';
 
 export const prerender = false;
 
-// Check if user has authenticated
-const { NOTION_GTASKS_KV, JWT_SECRET } = Astro.locals.runtime.env;
+const { JWT_SECRET } = Astro.locals.runtime.env;
 const gJwtToken = Astro.cookies.get('gtoken')?.value;
 const nJwtToken = Astro.cookies.get('ntoken')?.value;
-let kvData: KVDataT | null = null;
-// TODO: verify permissions
-const { gToken, nToken } = await decodeJWTTokens(
-	gJwtToken,
-	nJwtToken,
-	JWT_SECRET,
-);
-let isUserLoggedIn = !!gToken;
-
-// Handle Tokens: Save to KV if not present
-if (gToken) {
-	const userEmail = gToken.user.email;
-	try {
-		kvData = (await NOTION_GTASKS_KV.get(userEmail, {
-			type: 'json',
-		})) as KVDataT;
-		if (!kvData) {
-			// set KV data
-			kvData = {
-				gToken,
-				...(nToken && { nToken }),
-				created: new Date().toISOString(),
-				modified: new Date().toISOString(),
-			} as KVDataT;
-			await NOTION_GTASKS_KV.put(userEmail, JSON.stringify(kvData));
-		} else {
-			// Update KV Data if it misses nToken
-			kvData.gToken = gToken;
-			if (nToken) {
-				kvData.nToken = nToken;
-			}
-			kvData.modified = new Date().toISOString();
-			await NOTION_GTASKS_KV.put(userEmail, JSON.stringify(kvData));
-		}
-	} catch (error) {
-		console.error('ERROR', error);
-		kvData = null;
-		isUserLoggedIn = false;
-	}
-}
-const isNotionConnected = !!kvData?.nToken;
+const { gToken } = await decodeJWTTokens(gJwtToken, nJwtToken, JWT_SECRET);
 ---
 
 <Layout>
 	<div class="container mx-auto mt-20 p-8">
 		<Hero />
 	</div>
-	<!-- <Main
-			client:load
-			isUserLoggedIn={isUserLoggedIn}
-			isNotionConnected={isNotionConnected}
-			tasklistId={kvData?.tasksListId}
-			databaseId={kvData?.databaseId}
-		/> -->
-	<footer class="flex h-32 items-center justify-center bg-slate-800 text-white">
-		Made by &nbsp;<a href="https://alexei.me" class="underline"
-			>Alexey Antipov</a
+
+	<section class="my-48 flex flex-col items-center justify-center">
+		<h1
+			id="start-sync"
+			class="px-8 text-5xl font-bold tracking-wide sm:px-8 sm:text-6xl md:px-20 lg:px-4 lg:text-6xl xl:text-6xl"
 		>
+			Start Syncing
+		</h1>
+		<Main client:load hasToken={!!gToken} />
+	</section>
+
+	<section class="my-48 flex flex-col items-center justify-center">
+		<h1
+			class="px-8 text-5xl font-bold tracking-wide sm:px-8 sm:text-6xl md:px-20 lg:px-4 lg:text-6xl xl:text-6xl"
+		>
+			Limitations
+		</h1>
+		<div class="mt-8 flex w-full flex-wrap justify-center gap-4">TODO</div>
+	</section>
+
+	<footer
+		class="flex flex-col items-center justify-center bg-slate-800 py-12 text-white"
+	>
+		<div>
+			Made by &nbsp;<a href="https://alexei.me" class="underline"
+				>Alexey Antipov</a
+			>
+		</div>
+		<div>TODO: add placeholders for Github and Twitter</div>
 	</footer>
 </Layout>
 

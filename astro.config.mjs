@@ -17,4 +17,9 @@ export default defineConfig({
 		runtime: { mode: 'local' },
 	}),
 	integrations: [tailwind(), react()],
+	vite: {
+		build: {
+			minify: false,
+		},
+	},
 });

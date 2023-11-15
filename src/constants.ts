@@ -1,5 +1,6 @@
 export const GOOGLE_AUTH_URI = 'https://accounts.google.com/o/oauth2/auth';
 export const GOOGLE_SCOPES = 'https://www.googleapis.com/auth/tasks https://www.googleapis.com/auth/userinfo.email';
+export const GOOGLE_SCOPES_ARRAY = GOOGLE_SCOPES.split(' ');
 export const GOOGLE_TOKEN_URI = 'https://oauth2.googleapis.com/token';
 export const GOOGLE_USERINFO_URL = 'https://www.googleapis.com/oauth2/v1/userinfo';
 export const NOTION_AUTH_URL =

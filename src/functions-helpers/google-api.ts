@@ -41,6 +41,14 @@ export interface GTasksListT {
 	title: string;
 }
 
+class FetchError extends Error {
+	code: number;
+	constructor(status: number) {
+		super(`HTTP error! status: ${status}`);
+		this.code = status;
+	}
+}
+
 /**
  * Fetch open tasks for initial sync
  */
@@ -128,26 +136,21 @@ async function createTask(
 	}
 }
 
-async function fetchUserInfo(accessToken: string): Promise<UserInfoResponseT> {
-	try {
-		const userResp = await fetch(GOOGLE_USERINFO_URL, {
-			method: 'GET',
-			headers: {
-				Authorization: `Bearer ${accessToken}`,
-				accept: 'application/json',
-			},
-		});
-		if (!userResp.ok) {
-			throw new Error(
-				`Failed to fetch user info: ${userResp.status} ${userResp.statusText}`,
-			);
-		}
-		const userData = (await userResp.json()) as UserInfoResponseT;
-		return userData;
-	} catch (error) {
-		console.error('Error fetching user info', error);
-		throw error;
+export async function fetchUserInfo(
+	accessToken: string,
+): Promise<UserInfoResponseT> {
+	const userResp = await fetch(GOOGLE_USERINFO_URL, {
+		method: 'GET',
+		headers: {
+			Authorization: `Bearer ${accessToken}`,
+			accept: 'application/json',
+		},
+	});
+	if (!userResp.ok) {
+		throw new FetchError(userResp.status);
 	}
+	const userData = (await userResp.json()) as UserInfoResponseT;
+	return userData;
 }
 
 export async function fetchToken(
