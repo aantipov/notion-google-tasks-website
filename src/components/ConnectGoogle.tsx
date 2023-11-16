@@ -4,6 +4,7 @@ import {
 	useTasksListsQuery,
 	useDBsMutation,
 } from '@/helpers/api';
+import { EditButton } from './EditButton';
 
 interface PropsT {
 	hasToken: boolean;
@@ -161,20 +162,17 @@ export default function ConnectGoogle(props: PropsT) {
 			{!userQuery.error && selectedTaskList && !userWantChangeTasklist && (
 				<div className="w-full">
 					<Step state="connected" />
-					<div className="my-1">
-						Selected tasks list: "{selectedTaskList?.title}"
+					<div className="my-1 flex items-center">
+						<div className="mr-1">
+							Selected tasks list: "{selectedTaskList?.title}"
+						</div>
+						<EditButton
+							onClick={() => {
+								setUserSelectedTaskListId(selectedTaskList.id);
+								setUserWantChangeTasklist(true);
+							}}
+						/>
 					</div>
-
-					{/* Replace with Edit icon */}
-					<button
-						onClick={() => {
-							setUserSelectedTaskListId(selectedTaskList.id);
-							setUserWantChangeTasklist(true);
-						}}
-						className="rounded bg-gray-500 px-3 py-1 font-bold text-white hover:bg-blue-700"
-					>
-						Change Selected Tasks List
-					</button>
 				</div>
 			)}
 
