@@ -59,7 +59,7 @@ export default function ConnectNotion(props: { hasToken: boolean }) {
 
 	// TODO: auto select Notion database if only one is connected
 	useEffect(() => {
-		if (dbsData?.length === 1) {
+		if (dbsData?.length === 1 && dbsData[0].id !== userData?.databaseId) {
 			dbsMutationQuery.mutate(dbsData[0].id);
 		}
 	}, [dbsData]);

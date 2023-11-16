@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import {
 	useUserQuery,
 	useTasksListsQuery,
-	useDBsMutation,
+	useTasksListsMutation,
 } from '@/helpers/api';
 import { EditButton } from './EditButton';
 
@@ -67,7 +67,7 @@ export function Step({
 export default function ConnectGoogle(props: PropsT) {
 	const userQuery = useUserQuery(props.hasToken);
 	const tasksListsQuery = useTasksListsQuery(props.hasToken);
-	const tasksListsMutation = useDBsMutation();
+	const tasksListsMutation = useTasksListsMutation();
 	const [userSelectedTaskListId, setUserSelectedTaskListId] = useState<
 		string | null
 	>(null);

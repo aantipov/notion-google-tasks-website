@@ -76,7 +76,7 @@ export const useTasksListsQuery = (enabled: boolean = true) =>
 		enabled,
 	});
 
-export const useTasksListsMutation = (enabled: boolean = true) => {
+export const useTasksListsMutation = () => {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: async (id: string) => {
