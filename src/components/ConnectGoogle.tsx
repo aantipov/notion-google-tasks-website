@@ -5,7 +5,7 @@ import {
 	useTasksListsMutation,
 } from '@/helpers/api';
 
-interface MainProps {
+interface PropsT {
 	hasToken: boolean;
 }
 
@@ -63,7 +63,7 @@ export function Step({
 	);
 }
 
-export default function ConnectGoogle(props: MainProps) {
+export default function ConnectGoogle(props: PropsT) {
 	const userQuery = useUserQuery(props.hasToken);
 	const tasksListsQuery = useTasksListsQuery(props.hasToken);
 	const tasksListsMutation = useTasksListsMutation();
@@ -155,6 +155,7 @@ export default function ConnectGoogle(props: MainProps) {
 						Selected tasks list: "{selectedTaskList?.title}"
 					</div>
 
+					{/* Replace with Edit icon */}
 					<button
 						onClick={() => {
 							setUserSelectedTaskListId(selectedTaskList.id);

@@ -9,7 +9,14 @@ export const prerender = false;
 const { JWT_SECRET } = Astro.locals.runtime.env;
 const gJwtToken = Astro.cookies.get('gtoken')?.value;
 const nJwtToken = Astro.cookies.get('ntoken')?.value;
-const { gToken } = await decodeJWTTokens(gJwtToken, nJwtToken, JWT_SECRET);
+let hasGToken = false;
+try {
+	const tokens = await decodeJWTTokens(gJwtToken, nJwtToken, JWT_SECRET);
+	hasGToken = !!tokens.gToken;
+} catch (error) {
+	console.error('Error while decoding JWT tokens', error);
+	Astro.cookies.set('gtoken', '', { expires: new Date(0) });
+}
 ---
 
 <Layout>
@@ -24,7 +31,7 @@ const { gToken } = await decodeJWTTokens(gJwtToken, nJwtToken, JWT_SECRET);
 		>
 			Start Syncing
 		</h1>
-		<Main client:load hasToken={!!gToken} />
+		<Main client:load hasToken={!!hasGToken} />
 	</section>
 
 	<section class="my-48 flex flex-col items-center justify-center">

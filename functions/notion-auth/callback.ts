@@ -34,7 +34,7 @@ export const onRequestGet: PagesFunction<CFEnvT> = async ({ request, env }) => {
 		status: 302,
 		statusText: 'Found',
 		headers: {
-			Location: '/',
+			Location: '/#start-sync',
 			'Set-Cookie': `ntoken=${jwtToken}; HttpOnly; Secure; Path=/;`,
 		},
 	});

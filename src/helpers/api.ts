@@ -109,6 +109,28 @@ export async function fetchDatabases(): Promise<NDatabasesResponseT> {
 	return data;
 }
 
+export const useDatabasesQuery = (enabled: boolean = true) =>
+	useQuery({
+		queryKey: ['databases'],
+		queryFn: async () => {
+			const response = await fetch('/api/databases');
+			if (!response.ok) {
+				throw new FetchError(response.status);
+			}
+			const data = (await response.json()) as { items: NDatabasesResponseT[] };
+			return data.items;
+		},
+		// @ts-ignore
+		retry(failureCount, error) {
+			// @ts-ignore
+			if (error?.code === 401 || failureCount > 2) {
+				return false;
+			}
+			return true;
+		},
+		enabled,
+	});
+
 export const dbQuery = () =>
 	useQuery({ queryKey: ['db'], queryFn: fetchDatabases });
 

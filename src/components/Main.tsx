@@ -9,6 +9,7 @@ import type {
 import { NOTION_AUTH_URL } from '@/constants';
 import type { GTaskT } from '@/helpers/api';
 import ConnectGoogle from '@/components/ConnectGoogle';
+import ConnectNotion from '@/components/ConnectNotion';
 
 interface MainProps {
 	hasToken: boolean;
@@ -161,19 +162,7 @@ export default function Main(props: MainProps) {
 			<div className="mt-8 w-[80%] max-w-lg  border border-rose-400">
 				<ConnectGoogle hasToken={props.hasToken} />
 
-				{/* <div className="mt-5 opacity-40">
-					<span className="text-2xl">Step 2.&nbsp;</span>
-					{isNotionConnected ? (
-						<span className="text-green-500">Notion Connected</span>
-					) : (
-						<a
-							href={NOTION_AUTH_URL}
-							className="rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
-						>
-							Connect Notion
-						</a>
-					)}
-				</div> */}
+				<ConnectNotion hasToken={props.hasToken} />
 
 				{/* <div className="mt-5">
 					4.&nbsp;

@@ -62,7 +62,9 @@ export const onRequestGet: PagesFunction<CFEnvT> = async ({ env, request }) => {
 
 	// Set nToken if it doesn't exist
 	if (nToken && !kvData?.nToken) {
+		kvData.nToken = nToken;
 		kvData.modified = new Date().toISOString();
+		console.log('Updating KV with nToken');
 		try {
 			await env.NOTION_GTASKS_KV.put(userEmail, JSON.stringify(kvData));
 		} catch (error) {
