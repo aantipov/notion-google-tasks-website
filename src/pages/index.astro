@@ -16,6 +16,7 @@ try {
 } catch (error) {
 	console.error('Error while decoding JWT tokens', error);
 	Astro.cookies.set('gtoken', '', { expires: new Date(0) });
+	Astro.cookies.set('ntoken', '', { expires: new Date(0) });
 }
 ---
 

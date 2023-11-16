@@ -1,7 +1,11 @@
 import { parseRequestCookies } from '@/helpers/parseRequestCookies';
 import { decodeJWTTokens } from '@/helpers/decodeJWTTokens';
 import type { KVDataT } from '@/types';
-import { GOOGLE_SCOPES_ARRAY } from '@/constants';
+import {
+	DELETE_GTOKEN_COOKIE,
+	DELETE_NTOKEN_COOKIE,
+	GOOGLE_SCOPES_ARRAY,
+} from '@/constants';
 import * as googleApi from '@/functions-helpers/google-api';
 
 /**
@@ -13,9 +17,10 @@ export const onRequestGet: PagesFunction<CFEnvT> = async ({ env, request }) => {
 	if (!gToken) {
 		return new Response('Invalid token', {
 			status: 401,
-			headers: {
-				'Set-Cookie': 'gtoken=; HttpOnly; Secure; Path=/;',
-			},
+			headers: [
+				['Set-Cookie', DELETE_GTOKEN_COOKIE],
+				['Set-Cookie', DELETE_NTOKEN_COOKIE],
+			],
 		});
 	}
 
@@ -31,9 +36,10 @@ export const onRequestGet: PagesFunction<CFEnvT> = async ({ env, request }) => {
 		if (error?.code === 401) {
 			return new Response('Invalid token', {
 				status: 401,
-				headers: {
-					'Set-Cookie': 'gtoken=; HttpOnly; Secure; Path=/;',
-				},
+				headers: [
+					['Set-Cookie', DELETE_GTOKEN_COOKIE],
+					['Set-Cookie', DELETE_NTOKEN_COOKIE],
+				],
 			});
 		} else {
 			return new Response('Error fetching user info', { status: 500 });
@@ -74,10 +80,14 @@ export const onRequestGet: PagesFunction<CFEnvT> = async ({ env, request }) => {
 
 	const kvDataFiltered = { ...kvData, nToken: undefined, gToken: undefined };
 
-	return new Response(JSON.stringify(kvDataFiltered), {
-		status: 200,
-		headers: { 'Content-Type': 'application/json' },
-	});
+	const headers = new Headers();
+	headers.append('Content-Type', 'application/json');
+	// We should delete the nToken cookie if it exists, because we store it in KV and gToken should be a single source of truth
+	if (nToken) {
+		headers.append('Set-Cookie', DELETE_NTOKEN_COOKIE);
+	}
+
+	return new Response(JSON.stringify(kvDataFiltered), { status: 200, headers });
 };
 
 async function getTokensFromCookie(req: Request, env: CFEnvT) {

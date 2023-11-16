@@ -34,7 +34,8 @@ export const onRequestGet: PagesFunction<CFEnvT> = async ({ request, env }) => {
 		statusText: 'Found',
 		headers: {
 			Location: '/#start-sync',
-			'Set-Cookie': `gtoken=${jwtToken}; HttpOnly; Secure; Path=/;`,
+			// set cookie with expiration in 1 hour
+			'Set-Cookie': `gtoken=${jwtToken}; HttpOnly; Secure; Path=/; Max-Age=3600;`,
 		},
 	});
 };

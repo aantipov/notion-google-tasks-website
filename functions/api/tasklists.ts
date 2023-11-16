@@ -1,6 +1,7 @@
 import * as googleApi from '@/functions-helpers/google-api';
 import jwt from '@tsndr/cloudflare-worker-jwt';
 import type { KVDataPartialT, KVDataT } from '@/types';
+import { DELETE_GTOKEN_COOKIE, DELETE_NTOKEN_COOKIE } from '@/constants';
 
 interface BodyT {
 	id: string;
@@ -14,7 +15,13 @@ const TASKS_LISTS_URL =
 export const onRequestGet: PagesFunction<CFEnvT> = async ({ env, request }) => {
 	const gAccessToken = await getGAccessTokenFromCookie(request, env);
 	if (!gAccessToken) {
-		return new Response('Invalid token', { status: 401 });
+		return new Response('Invalid token', {
+			status: 401,
+			headers: [
+				['Set-Cookie', DELETE_GTOKEN_COOKIE],
+				['Set-Cookie', DELETE_NTOKEN_COOKIE],
+			],
+		});
 	}
 
 	const resp = await fetch(TASKS_LISTS_URL, {
@@ -28,10 +35,11 @@ export const onRequestGet: PagesFunction<CFEnvT> = async ({ env, request }) => {
 	if (!resp.ok) {
 		if (resp.status === 401) {
 			const newResponse = new Response(resp.body, resp);
-			newResponse.headers.set(
-				'Set-Cookie',
-				'gtoken=; HttpOnly; Secure; Path=/;',
-			);
+
+			// delete gtoken cookie
+			newResponse.headers.set('Set-Cookie', DELETE_GTOKEN_COOKIE);
+			newResponse.headers.set('Set-Cookie', DELETE_NTOKEN_COOKIE);
+
 			return newResponse;
 		}
 	}
@@ -55,7 +63,13 @@ export const onRequestPost: PagesFunction<CFEnvT> = async ({
 		return new Response('Invalid request', { status: 400 });
 	}
 	if (!gAccessToken) {
-		return new Response('Invalid token', { status: 401 });
+		return new Response('Invalid token', {
+			status: 401,
+			headers: [
+				['Set-Cookie', DELETE_GTOKEN_COOKIE],
+				['Set-Cookie', DELETE_NTOKEN_COOKIE],
+			],
+		});
 	}
 
 	const email = gAccessToken.user.email;

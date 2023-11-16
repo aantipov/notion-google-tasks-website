@@ -11,3 +11,5 @@ export const NOTION_AUTH_URL =
 export const GOOGLE_MAX_TASKS = 100; // Google Tasks API returns max 100 tasks per request. Default is 20
 // export const COMPLETION_MAP_TIMEOUT_DAYS = 7; // Days since a task was completed in Google after which it the mapping should be removed (to keep only active tasks there)
 export const NOTION_RATE_LIMIT = 3; // 3 requests per second
+export const DELETE_GTOKEN_COOKIE = 'gtoken=; HttpOnly; Secure; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT;';
+export const DELETE_NTOKEN_COOKIE = 'ntoken=; HttpOnly; Secure; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT;';

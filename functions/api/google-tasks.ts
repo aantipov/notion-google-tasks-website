@@ -1,7 +1,7 @@
 import * as googleApi from '@/functions-helpers/google-api';
 import jwt from '@tsndr/cloudflare-worker-jwt';
 import type { KVDataPartialT, KVDataT } from '@/types';
-import { GOOGLE_MAX_TASKS } from '@/constants';
+import { DELETE_GTOKEN_COOKIE, DELETE_NTOKEN_COOKIE } from '@/constants';
 
 interface BodyT {
 	id: string;
@@ -59,9 +59,10 @@ export const onRequestGet: PagesFunction<CFEnvT> = async ({ env, request }) => {
 		if (error?.code === 401) {
 			return new Response('Invalid token', {
 				status: 401,
-				headers: {
-					'Set-Cookie': 'gtoken=; HttpOnly; Secure; Path=/;',
-				},
+				headers: [
+					['Set-Cookie', DELETE_GTOKEN_COOKIE],
+					['Set-Cookie', DELETE_NTOKEN_COOKIE],
+				],
 			});
 		}
 		return new Response('Error fetching google tasks', { status: 500 });
