@@ -16,7 +16,9 @@ export function Step({
 	const linkHover = enabled ? 'hover:bg-blue-500' : '';
 	const linkCursor = enabled ? 'cursor-pointer' : 'cursor-not-allowed';
 	const handleClick = (event: any) => {
-		setLinkClicked(true);
+		if (enabled) {
+			setLinkClicked(true);
+		}
 		if (!enabled || linkClicked) {
 			event.preventDefault();
 		}
@@ -71,47 +73,57 @@ export default function ConnectNotion(props: { hasToken: boolean }) {
 		return null;
 	})();
 
-	return (
-		<div className="mt-5">
-			{!enabled && <Step enabled={false} state="not-connected" />}
-			{enabled && !userData.nConnected && (
-				<Step enabled={enabled} state="not-connected" />
-			)}
-			{enabled &&
-				!!userData.nConnected &&
-				(!userData.databaseId || dbsData?.length !== 1) && (
-					<>
-						<Step enabled={enabled} state="in-progress" />
-						{dbsData && dbsData?.length > 1 && (
-							<div className="mt-1 text-orange-500">
-								You selected more than one database. Please update Notion
-								Connection and choose only one Notion Database to be connected
-								to Google Tasks
-							</div>
-						)}
-						{dbsData && dbsData?.length === 0 && (
-							<div className="mt-1 text-orange-500">
-								You have not selected any Notion database. Please update Notion
-								Connection and choose exactly one Notion Database to be
-								connected to Google Tasks
-							</div>
-						)}
-					</>
-				)}
-			{enabled &&
-				!!userData.nConnected &&
-				!!userData.databaseId &&
-				dbsData?.length == 1 && (
-					<div>
-						<Step enabled={enabled} state="connected" />
-						<div className="my-1 flex items-center">
-							<div className="mr-1">
-								Selected Notion Database: "{selectedDBName}"
-							</div>
-							<EditButton href={NOTION_AUTH_URL} />
-						</div>
+	if (!enabled) {
+		return <Step enabled={false} state="not-connected" />;
+	}
+
+	if (enabled && !userData.nConnected) {
+		return <Step enabled={enabled} state="not-connected" />;
+	}
+
+	if (
+		enabled &&
+		!!userData.nConnected &&
+		(!userData.databaseId || dbsData?.length !== 1)
+	) {
+		return (
+			<>
+				<Step enabled={enabled} state="in-progress" />
+				{dbsData && dbsData?.length > 1 && (
+					<div className="mt-1 text-orange-500">
+						You selected more than one database. Please update Notion Connection
+						and choose only one Notion Database to be connected to Google Tasks
 					</div>
 				)}
-		</div>
-	);
+				{dbsData && dbsData?.length === 0 && (
+					<div className="mt-1 text-orange-500">
+						You have not selected any Notion database. Please update Notion
+						Connection and choose exactly one Notion Database to be connected to
+						Google Tasks
+					</div>
+				)}
+			</>
+		);
+	}
+
+	if (
+		enabled &&
+		!!userData.nConnected &&
+		!!userData.databaseId &&
+		dbsData?.length == 1
+	) {
+		return (
+			<div>
+				<Step enabled={enabled} state="connected" />
+				<div className="my-1 flex items-center">
+					<div className="mr-1">
+						Selected Notion Database: "{selectedDBName}"
+					</div>
+					<EditButton href={NOTION_AUTH_URL} />
+				</div>
+			</div>
+		);
+	}
+
+	return <div className="mt-5">HHHHHHH</div>;
 }
