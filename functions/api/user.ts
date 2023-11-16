@@ -78,7 +78,12 @@ export const onRequestGet: PagesFunction<CFEnvT> = async ({ env, request }) => {
 		}
 	}
 
-	const kvDataFiltered = { ...kvData, nToken: undefined, gToken: undefined };
+	const kvDataFiltered = {
+		...kvData,
+		nConnected: !!kvData.nToken,
+		nToken: undefined,
+		gToken: undefined,
+	};
 
 	const headers = new Headers();
 	headers.append('Content-Type', 'application/json');

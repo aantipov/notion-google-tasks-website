@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import {
 	useUserQuery,
 	useTasksListsQuery,
-	useTasksListsMutation,
+	useDBsMutation,
 } from '@/helpers/api';
 
 interface PropsT {
@@ -66,7 +66,7 @@ export function Step({
 export default function ConnectGoogle(props: PropsT) {
 	const userQuery = useUserQuery(props.hasToken);
 	const tasksListsQuery = useTasksListsQuery(props.hasToken);
-	const tasksListsMutation = useTasksListsMutation();
+	const tasksListsMutation = useDBsMutation();
 	const [userSelectedTaskListId, setUserSelectedTaskListId] = useState<
 		string | null
 	>(null);
@@ -147,7 +147,7 @@ export default function ConnectGoogle(props: PropsT) {
 							{userSelectedTaskListId && (
 								<button
 									onClick={() => {
-										tasksListsMutation.mutate({ id: userSelectedTaskListId });
+										tasksListsMutation.mutate(userSelectedTaskListId);
 									}}
 									className="mt-1 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
 								>
@@ -160,12 +160,7 @@ export default function ConnectGoogle(props: PropsT) {
 
 			{!userQuery.error && selectedTaskList && !userWantChangeTasklist && (
 				<div className="w-full">
-					<div>
-						<span className="text-2xl">Step 1.&nbsp;</span>
-						<span className="text-xl text-green-600">
-							Google Tasks Connected
-						</span>
-					</div>
+					<Step state="connected" />
 					<div className="my-1">
 						Selected tasks list: "{selectedTaskList?.title}"
 					</div>
@@ -204,7 +199,7 @@ export default function ConnectGoogle(props: PropsT) {
 							{userSelectedTaskListId && (
 								<button
 									onClick={() => {
-										tasksListsMutation.mutate({ id: userSelectedTaskListId });
+										tasksListsMutation.mutate(userSelectedTaskListId);
 										setUserWantChangeTasklist(false);
 									}}
 									className="mt-1 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"

@@ -79,7 +79,7 @@ export const useTasksListsQuery = (enabled: boolean = true) =>
 export const useTasksListsMutation = (enabled: boolean = true) => {
 	const queryClient = useQueryClient();
 	return useMutation({
-		mutationFn: async ({ id }: { id: string }) => {
+		mutationFn: async (id: string) => {
 			const response = await fetch('/api/tasklists', {
 				method: 'POST',
 				body: JSON.stringify({ id }),
@@ -98,18 +98,7 @@ export const useTasksListsMutation = (enabled: boolean = true) => {
 	});
 };
 
-export async function fetchDatabases(): Promise<NDatabasesResponseT> {
-	const response = await fetch('/api/databases');
-	if (!response.ok) {
-		const error = new Error(response.statusText) as any;
-		error.code = response.status;
-		throw error;
-	}
-	const data = (await response.json()) as NDatabasesResponseT;
-	return data;
-}
-
-export const useDatabasesQuery = (enabled: boolean = true) =>
+export const useDBsQuery = (enabled: boolean = true) =>
 	useQuery({
 		queryKey: ['databases'],
 		queryFn: async () => {
@@ -117,7 +106,7 @@ export const useDatabasesQuery = (enabled: boolean = true) =>
 			if (!response.ok) {
 				throw new FetchError(response.status);
 			}
-			const data = (await response.json()) as { items: NDatabasesResponseT[] };
+			const data = (await response.json()) as NDatabasesResponseT;
 			return data.items;
 		},
 		// @ts-ignore
@@ -131,20 +120,27 @@ export const useDatabasesQuery = (enabled: boolean = true) =>
 		enabled,
 	});
 
-export const dbQuery = () =>
-	useQuery({ queryKey: ['db'], queryFn: fetchDatabases });
-
-export async function saveDatabase(id: string) {
-	const response = await fetch('/api/databases', {
-		method: 'POST',
-		body: JSON.stringify({ id }),
-		headers: { 'Content-Type': 'application/json' },
+export const useDBsMutation = () => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: async (id: string) => {
+			const response = await fetch('/api/databases', {
+				method: 'POST',
+				body: JSON.stringify({ id }),
+				headers: { 'Content-Type': 'application/json' },
+			});
+			if (!response.ok) {
+				throw new FetchError(response.status);
+			}
+			const data = await response.json();
+			return data;
+		},
+		onSuccess: () => {
+			// Invalidate and refetch
+			queryClient.invalidateQueries({ queryKey: ['user'] });
+		},
 	});
-	if (!response.ok) {
-		throw new FetchError(response.status);
-	}
-	return await response.json();
-}
+};
 
 export async function sync() {
 	const response = await fetch('/api/sync', {

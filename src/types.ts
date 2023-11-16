@@ -12,6 +12,7 @@ export interface KVDataT {
 	nToken: ReturnType<typeof notionApi.fetchToken> extends Promise<infer T>
 		? T
 		: never;
+	nConnected?: boolean;
 	tasksListId: string;
 	databaseId: string;
 	mapping: [gTaskId, nTaskId, completedAt?][]; // completedAt is used to remove mapping after a certain time since the task was completed in Google
