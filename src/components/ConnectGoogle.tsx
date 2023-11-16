@@ -82,7 +82,11 @@ export default function ConnectGoogle(props: PropsT) {
 	}, [tasksListsQuery.data]);
 
 	const selectedTaskList = (() => {
-		if (userQuery.data?.tasksListId && tasksListsQuery.data) {
+		if (
+			!userQuery.error &&
+			userQuery.data?.tasksListId &&
+			tasksListsQuery.data
+		) {
 			return tasksListsQuery.data.find(
 				(taskList) => taskList.id === userQuery.data.tasksListId,
 			);
@@ -106,7 +110,18 @@ export default function ConnectGoogle(props: PropsT) {
 				</div>
 			)}
 
-			{userQuery.data &&
+			{/* @ts-ignore */}
+			{props.hasToken && userQuery.error && userQuery.error?.code === 401 && (
+				<div className="w-full">
+					<Step />
+					<div className="mt-1 text-orange-500">
+						Your session has expired. Please click "Connect Google Tasks"
+					</div>
+				</div>
+			)}
+
+			{!userQuery.error &&
+				userQuery.data &&
 				!userQuery.data.tasksListId &&
 				tasksListsQuery.data && (
 					// @ts-ignore
@@ -143,7 +158,7 @@ export default function ConnectGoogle(props: PropsT) {
 					</div>
 				)}
 
-			{selectedTaskList && !userWantChangeTasklist && (
+			{!userQuery.error && selectedTaskList && !userWantChangeTasklist && (
 				<div className="w-full">
 					<div>
 						<span className="text-2xl">Step 1.&nbsp;</span>
@@ -168,35 +183,38 @@ export default function ConnectGoogle(props: PropsT) {
 				</div>
 			)}
 
-			{selectedTaskList && userWantChangeTasklist && tasksListsQuery.data && (
-				<div className="w-full">
-					<Step state="connected" />
+			{!userQuery.error &&
+				selectedTaskList &&
+				userWantChangeTasklist &&
+				tasksListsQuery.data && (
+					<div className="w-full">
+						<Step state="connected" />
 
-					<div className="my-1">
-						{tasksListsQuery.data.map((gTaskList) => (
-							<TaskListOption
-								key={gTaskList.id}
-								id={gTaskList.id}
-								title={gTaskList.title}
-								selected={userSelectedTaskListId === gTaskList.id}
-								onSelect={() => setUserSelectedTaskListId(gTaskList.id)}
-							/>
-						))}
+						<div className="my-1">
+							{tasksListsQuery.data.map((gTaskList) => (
+								<TaskListOption
+									key={gTaskList.id}
+									id={gTaskList.id}
+									title={gTaskList.title}
+									selected={userSelectedTaskListId === gTaskList.id}
+									onSelect={() => setUserSelectedTaskListId(gTaskList.id)}
+								/>
+							))}
 
-						{userSelectedTaskListId && (
-							<button
-								onClick={() => {
-									tasksListsMutation.mutate({ id: userSelectedTaskListId });
-									setUserWantChangeTasklist(false);
-								}}
-								className="mt-1 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
-							>
-								Save selection
-							</button>
-						)}
+							{userSelectedTaskListId && (
+								<button
+									onClick={() => {
+										tasksListsMutation.mutate({ id: userSelectedTaskListId });
+										setUserWantChangeTasklist(false);
+									}}
+									className="mt-1 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
+								>
+									Save selection
+								</button>
+							)}
+						</div>
 					</div>
-				</div>
-			)}
+				)}
 		</div>
 	);
 }

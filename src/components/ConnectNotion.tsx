@@ -48,10 +48,8 @@ export function Step({
 
 export default function ConnectNotion(props: PropsT) {
 	const userQuery = useUserQuery(props.hasToken);
-	const databasesQuery = useDatabasesQuery(
-		props.hasToken && !!userQuery.data?.tasksListId,
-	);
-	const enabled = !!userQuery.data?.tasksListId;
+	const enabled = !userQuery.error && !!userQuery.data?.tasksListId;
+	const databasesQuery = useDatabasesQuery(enabled);
 
 	console.log('db', databasesQuery.data);
 
