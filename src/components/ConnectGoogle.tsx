@@ -37,11 +37,29 @@ export function TaskListOption(props: TaskListOptionProps) {
 
 export function Step({
 	state = 'not-connected',
+	disabled = false,
 }: {
 	state?: 'not-connected' | 'in-progress' | 'connected';
+	disabled?: boolean;
 }) {
 	const [linkClicked, setLinkClicked] = useState<boolean>(false);
 	const linkOpacity = linkClicked ? 'opacity-40' : '';
+
+	if (state === 'not-connected' && disabled) {
+		return (
+			<div className="flex w-full items-center">
+				<span className="text-2xl">Step 1.&nbsp;</span>
+				<a
+					href="/google-auth"
+					onClick={(event) => event.preventDefault()}
+					className="cursor-not-allowed rounded bg-blue-500 px-4 py-2 font-bold text-white opacity-40"
+				>
+					Connect Google Tasks
+				</a>
+			</div>
+		);
+	}
+
 	return (
 		<div className="flex w-full items-center">
 			<span className="text-2xl">Step 1.&nbsp;</span>
@@ -95,119 +113,130 @@ export default function ConnectGoogle(props: PropsT) {
 		return null;
 	})();
 
-	return (
-		<div className="mt-5">
-			{!props.hasToken && <Step />}
+	if (!props.hasToken) {
+		return <Step />;
+	}
 
-			{/* Handle user has not given enough rights */}
-			{/* @ts-ignore */}
-			{props.hasToken && userQuery.error && userQuery.error?.code === 403 && (
-				<div className="w-full">
-					<Step />
-					<div className="mt-5 text-orange-500">
-						Not Enough Permissions. We need to access your Google Tasks. Please
-						click "Connect Google Tasks" and give us access.
-					</div>
+	// @ts-ignore
+	if (userQuery.error && userQuery.error?.code === 403) {
+		return (
+			<div className="w-full">
+				<Step />
+				<div className="mt-5 text-orange-500">
+					Not Enough Permissions. We need to access your Google Tasks. Please
+					click "Connect Google Tasks" and give us access.
 				</div>
-			)}
+			</div>
+		);
+	}
 
-			{/* @ts-ignore */}
-			{props.hasToken && userQuery.error && userQuery.error?.code === 401 && (
-				<div className="w-full">
-					<Step />
-					<div className="mt-1 text-orange-500">
-						Your session has expired. Please click "Connect Google Tasks"
-					</div>
+	// @ts-ignore
+	if (userQuery.error && userQuery.error?.code === 401) {
+		return (
+			<div className="w-full">
+				<Step />
+				<div className="mt-1 text-orange-500">
+					Your session has expired. Please click "Connect Google Tasks"
 				</div>
-			)}
+			</div>
+		);
+	}
 
-			{!userQuery.error &&
-				userQuery.data &&
-				!userQuery.data.tasksListId &&
-				tasksListsQuery.data && (
-					// @ts-ignore
-					<div className="w-full">
-						<Step state="in-progress" />
+	if (
+		!userQuery.error &&
+		userQuery.data &&
+		!userQuery.data.tasksListId &&
+		tasksListsQuery.data
+	) {
+		return (
+			<div className="w-full">
+				<Step state="in-progress" />
 
-						<div className="mt-1 text-orange-500">
-							Multiple taskslists found. Choose the one you want to sync with
-							Notion
-						</div>
+				<div className="mt-1 text-orange-500">
+					Multiple taskslists found. Choose the one you want to sync with Notion
+				</div>
 
-						<div className="my-1">
-							{tasksListsQuery.data.map((gTaskList) => (
-								<TaskListOption
-									key={gTaskList.id}
-									id={gTaskList.id}
-									title={gTaskList.title}
-									selected={userSelectedTaskListId === gTaskList.id}
-									onSelect={() => setUserSelectedTaskListId(gTaskList.id)}
-								/>
-							))}
-
-							{userSelectedTaskListId && (
-								<button
-									onClick={() => {
-										tasksListsMutation.mutate(userSelectedTaskListId);
-									}}
-									className="mt-1 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
-								>
-									Save selection
-								</button>
-							)}
-						</div>
-					</div>
-				)}
-
-			{!userQuery.error && selectedTaskList && !userWantChangeTasklist && (
-				<div className="w-full">
-					<Step state="connected" />
-					<div className="my-1 flex items-center">
-						<div className="mr-1">
-							Selected tasks list: "{selectedTaskList?.title}"
-						</div>
-						<EditButton
-							onClick={() => {
-								setUserSelectedTaskListId(selectedTaskList.id);
-								setUserWantChangeTasklist(true);
-							}}
+				<div className="my-1">
+					{tasksListsQuery.data.map((gTaskList) => (
+						<TaskListOption
+							key={gTaskList.id}
+							id={gTaskList.id}
+							title={gTaskList.title}
+							selected={userSelectedTaskListId === gTaskList.id}
+							onSelect={() => setUserSelectedTaskListId(gTaskList.id)}
 						/>
-					</div>
+					))}
+
+					{userSelectedTaskListId && (
+						<button
+							onClick={() => {
+								tasksListsMutation.mutate(userSelectedTaskListId);
+							}}
+							className="mt-1 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
+						>
+							Save selection
+						</button>
+					)}
 				</div>
-			)}
+			</div>
+		);
+	}
 
-			{!userQuery.error &&
-				selectedTaskList &&
-				userWantChangeTasklist &&
-				tasksListsQuery.data && (
-					<div className="w-full">
-						<Step state="connected" />
-
-						<div className="my-1">
-							{tasksListsQuery.data.map((gTaskList) => (
-								<TaskListOption
-									key={gTaskList.id}
-									id={gTaskList.id}
-									title={gTaskList.title}
-									selected={userSelectedTaskListId === gTaskList.id}
-									onSelect={() => setUserSelectedTaskListId(gTaskList.id)}
-								/>
-							))}
-
-							{userSelectedTaskListId && (
-								<button
-									onClick={() => {
-										tasksListsMutation.mutate(userSelectedTaskListId);
-										setUserWantChangeTasklist(false);
-									}}
-									className="mt-1 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
-								>
-									Save selection
-								</button>
-							)}
-						</div>
+	if (!userQuery.error && selectedTaskList && !userWantChangeTasklist) {
+		return (
+			<div className="w-full">
+				<Step state="connected" />
+				<div className="my-1 flex items-center">
+					<div className="mr-1">
+						Selected tasks list: "{selectedTaskList?.title}"
 					</div>
-				)}
-		</div>
-	);
+					<EditButton
+						onClick={() => {
+							setUserSelectedTaskListId(selectedTaskList.id);
+							setUserWantChangeTasklist(true);
+						}}
+					/>
+				</div>
+			</div>
+		);
+	}
+
+	if (
+		!userQuery.error &&
+		selectedTaskList &&
+		userWantChangeTasklist &&
+		tasksListsQuery.data
+	) {
+		return (
+			<div className="w-full">
+				<Step state="connected" />
+
+				<div className="my-1">
+					{tasksListsQuery.data.map((gTaskList) => (
+						<TaskListOption
+							key={gTaskList.id}
+							id={gTaskList.id}
+							title={gTaskList.title}
+							selected={userSelectedTaskListId === gTaskList.id}
+							onSelect={() => setUserSelectedTaskListId(gTaskList.id)}
+						/>
+					))}
+
+					{userSelectedTaskListId && (
+						<button
+							onClick={() => {
+								tasksListsMutation.mutate(userSelectedTaskListId);
+								setUserWantChangeTasklist(false);
+							}}
+							className="mt-1 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
+						>
+							Save selection
+						</button>
+					)}
+				</div>
+			</div>
+		);
+	}
+
+	return <Step state="not-connected" disabled />;
 }
