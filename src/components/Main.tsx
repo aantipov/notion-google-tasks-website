@@ -10,6 +10,7 @@ import { NOTION_AUTH_URL } from '@/constants';
 import type { GTaskT } from '@/helpers/api';
 import ConnectGoogle from '@/components/ConnectGoogle';
 import ConnectNotion from '@/components/ConnectNotion';
+import InitialSync from './InitialSync';
 
 interface MainProps {
 	hasToken: boolean;
@@ -162,7 +163,13 @@ export default function Main(props: MainProps) {
 			<div className="mt-8 w-[80%] max-w-lg  border border-rose-400">
 				<ConnectGoogle hasToken={props.hasToken} />
 
-				<ConnectNotion hasToken={props.hasToken} />
+				<div className="mt-5">
+					<ConnectNotion hasToken={props.hasToken} />
+				</div>
+
+				<div className="mt-5">
+					<InitialSync hasToken={props.hasToken} />
+				</div>
 
 				{/* <div className="mt-5">
 					4.&nbsp;

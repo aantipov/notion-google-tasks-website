@@ -82,9 +82,19 @@ export const onRequestPost: PagesFunction<CFEnvT> = async ({
 	const gIdTuples = await googleApi.createAllGoogleTasks(
 		nTasks,
 		kvData.tasksListId,
-		kvData.gToken.access_token,
+		gToken.access_token,
 	);
 	console.log('gIdTuples', JSON.stringify(gIdTuples, null, 2));
+
+	const kvDataUpdated = {
+		...kvData,
+		lastSynced: new Date().toISOString(),
+	} as KVDataT;
+
+	await env.NOTION_GTASKS_KV.put(
+		gToken.user.email,
+		JSON.stringify(kvDataUpdated),
+	);
 
 	return new Response(JSON.stringify({ hello: 'hello' }), {
 		status: 200,

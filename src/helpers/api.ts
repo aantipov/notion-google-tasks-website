@@ -142,37 +142,67 @@ export const useDBsMutation = () => {
 	});
 };
 
-export async function sync() {
-	const response = await fetch('/api/sync', {
-		method: 'POST',
-		headers: { 'Content-Type': 'application/json' },
+export const useSyncMutation = () => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: async () => {
+			const response = await fetch('/api/sync', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+			});
+			if (!response.ok) {
+				throw new FetchError(response.status);
+			}
+			const data = await response.json();
+			return data;
+		},
+		onSuccess: () => {
+			// Invalidate and refetch
+			queryClient.invalidateQueries({ queryKey: ['user'] });
+		},
 	});
-	if (!response.ok) {
-		const error = new Error(response.statusText) as any;
-		error.code = response.status;
-		throw error;
-	}
-	return await response.json();
-}
+};
 
-export async function fetchGTasks(): Promise<GTaskT[]> {
-	const response = await fetch('/api/google-tasks');
-	if (!response.ok) {
-		const error = new Error(response.statusText) as any;
-		error.code = response.status;
-		throw error;
-	}
-	const data = (await response.json()) as { items: GTaskT[] };
-	return data.items;
-}
+export const useGTasksQuery = (enabled: boolean = true) =>
+	useQuery({
+		queryKey: ['gtasks'],
+		queryFn: async () => {
+			const response = await fetch('/api/google-tasks');
+			if (!response.ok) {
+				throw new FetchError(response.status);
+			}
+			const data = (await response.json()) as { items: GTaskT[] };
+			return data.items;
+		},
+		// @ts-ignore
+		retry(failureCount, error) {
+			// @ts-ignore
+			if (error?.code === 401 || failureCount > 2) {
+				return false;
+			}
+			return true;
+		},
+		enabled,
+	});
 
-export async function fetchNTasks(): Promise<NTaskT[]> {
-	const response = await fetch('/api/notion-tasks');
-	if (!response.ok) {
-		const error = new Error(response.statusText) as any;
-		error.code = response.status;
-		throw error;
-	}
-	const data = (await response.json()) as { items: NTaskT[] };
-	return data.items;
-}
+export const useNTasksQuery = (enabled: boolean = true) =>
+	useQuery({
+		queryKey: ['ntasks'],
+		queryFn: async () => {
+			const response = await fetch('/api/notion-tasks');
+			if (!response.ok) {
+				throw new FetchError(response.status);
+			}
+			const data = (await response.json()) as { items: NTaskT[] };
+			return data.items;
+		},
+		// @ts-ignore
+		retry(failureCount, error) {
+			// @ts-ignore
+			if (error?.code === 401 || failureCount > 2) {
+				return false;
+			}
+			return true;
+		},
+		enabled,
+	});

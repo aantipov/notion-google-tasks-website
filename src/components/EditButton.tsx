@@ -20,7 +20,7 @@ export function EditButton(props: { onClick?: () => void; href?: string }) {
 		return (
 			<button
 				onClick={props.onClick}
-				className="flex rounded-xl bg-yellow-500 p-1 text-white transition-all duration-300 hover:rounded-3xl hover:bg-yellow-600"
+				className="flex rounded-lg bg-yellow-500 p-1 text-white transition-all duration-300 hover:rounded-3xl hover:bg-yellow-600"
 			>
 				{svgIcon}
 			</button>
@@ -30,7 +30,7 @@ export function EditButton(props: { onClick?: () => void; href?: string }) {
 		return (
 			<a
 				href={props.href}
-				className="flex rounded-xl bg-yellow-500 p-1 text-white transition-all duration-300 hover:rounded-3xl hover:bg-yellow-600"
+				className="flex rounded-lg bg-yellow-500 p-1 text-white transition-all duration-300 hover:rounded-3xl hover:bg-yellow-600"
 			>
 				{svgIcon}
 			</a>
