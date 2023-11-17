@@ -5,6 +5,7 @@ import {
 	useTasksListsMutation,
 } from '@/helpers/api';
 import { EditButton } from './EditButton';
+import LinkButton from './LinkButton';
 
 interface PropsT {
 	hasToken: boolean;
@@ -38,39 +39,19 @@ export function TaskListOption(props: TaskListOptionProps) {
 export function Step({
 	state = 'not-connected',
 	disabled = false,
+	loading = false,
 }: {
 	state?: 'not-connected' | 'in-progress' | 'connected';
 	disabled?: boolean;
+	loading?: boolean;
 }) {
-	const [linkClicked, setLinkClicked] = useState<boolean>(false);
-	const linkOpacity = linkClicked ? 'opacity-40' : '';
-
-	if (state === 'not-connected' && disabled) {
-		return (
-			<div className="flex w-full items-center">
-				<span className="text-2xl">Step 1.&nbsp;</span>
-				<a
-					href="/google-auth"
-					onClick={(event) => event.preventDefault()}
-					className="cursor-not-allowed rounded bg-blue-500 px-4 py-2 font-bold text-white opacity-40"
-				>
-					Connect Google Tasks
-				</a>
-			</div>
-		);
-	}
-
 	return (
 		<div className="flex w-full items-center">
 			<span className="text-2xl">Step 1.&nbsp;</span>
 			{state === 'not-connected' && (
-				<a
-					href="/google-auth"
-					onClick={() => setLinkClicked(true)}
-					className={`${linkOpacity} rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700`}
-				>
-					Connect Google Tasks
-				</a>
+				<LinkButton href="/google-auth" disabled={disabled} loading={loading}>
+					Connect Google Tasks {disabled && 'DISABLED'}
+				</LinkButton>
 			)}
 			{state === 'in-progress' && (
 				<span className="text-xl">Google Tasks Connection</span>

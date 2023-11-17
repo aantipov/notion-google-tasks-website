@@ -1,48 +1,31 @@
 import { NOTION_AUTH_URL } from '@/constants';
 import { useDBsMutation, useDBsQuery, useUserQuery } from '@/helpers/api';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { EditButton } from './EditButton';
+import LinkButton from './LinkButton';
 
 export function Step({
 	state,
 	enabled,
+	loading = false,
 }: {
 	state?: 'not-connected' | 'in-progress' | 'connected';
 	enabled: boolean;
+	loading?: boolean;
 }) {
-	const [linkClicked, setLinkClicked] = useState<boolean>(false);
-	const linkOpacity = linkClicked ? 'opacity-40' : '';
-	const elementOpacity = !enabled ? 'opacity-40' : '';
-	const linkHover = enabled ? 'hover:bg-blue-500' : '';
-	const linkCursor = enabled ? 'cursor-pointer' : 'cursor-not-allowed';
-	const handleClick = (event: any) => {
-		if (enabled) {
-			setLinkClicked(true);
-		}
-		if (!enabled || linkClicked) {
-			event.preventDefault();
-		}
-	};
 	return (
-		<div className={`${elementOpacity} flex w-full items-center`}>
+		<div className="flex w-full items-center">
 			<span className="text-2xl">Step 2.&nbsp;</span>
-			{state === 'not-connected' && (
-				<a
+			{(state === 'not-connected' || state === 'in-progress') && (
+				<LinkButton
 					href={NOTION_AUTH_URL}
-					onClick={handleClick}
-					className={`${linkOpacity} ${linkHover} ${linkCursor} rounded bg-blue-500 px-4 py-2 font-bold text-white `}
+					disabled={!enabled}
+					loading={loading}
 				>
-					Connect Notion Database
-				</a>
-			)}
-			{state === 'in-progress' && (
-				<a
-					href={NOTION_AUTH_URL}
-					onClick={handleClick}
-					className={`${linkOpacity} ${linkHover} ${linkCursor} rounded bg-blue-500 px-4 py-2 font-bold text-white `}
-				>
-					Amend Notion Connection
-				</a>
+					{state === 'not-connected'
+						? 'Connect Notion Database'
+						: 'Amend Notion Connection'}
+				</LinkButton>
 			)}
 			{state === 'connected' && (
 				<span className="text-xl text-green-600">
