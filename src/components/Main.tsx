@@ -8,7 +8,7 @@ const queryClient = new QueryClient();
 export default function Main(props: { hasToken: boolean }) {
 	return (
 		<QueryClientProvider client={queryClient}>
-			<div className="mt-8 w-[80%] max-w-lg  border border-rose-400">
+			<div className="mt-8 w-[80%] max-w-lg rounded-2xl border-4 border-gray-800 p-5">
 				<ConnectGoogle hasToken={props.hasToken} />
 
 				<div className="mt-5">
