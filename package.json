@@ -11,30 +11,31 @@
 		"build": "astro check && astro build",
 		"preview": "astro preview",
 		"deploy": "astro build && wrangler pages deploy ./dist",
-		"_functions:build": "wrangler pages functions build ./functions"
+		"_functions:build": "wrangler pages functions build ./functions",
+		"upgrade": "pnpx npm-upgrade"
 	},
 	"dependencies": {
 		"@astrojs/check": "^0.3.1",
-		"@astrojs/cloudflare": "^7.6.4",
-		"@astrojs/react": "^3.0.4",
+		"@astrojs/cloudflare": "^7.7.1",
+		"@astrojs/react": "^3.0.5",
 		"@astrojs/tailwind": "^5.0.2",
 		"@astrojs/ts-plugin": "^1.3.1",
 		"@notionhq/client": "^2.2.13",
-		"@tanstack/react-query": "^5.8.3",
-		"@types/react": "^18.0.21",
-		"@types/react-dom": "^18.0.6",
-		"astro": "^3.4.3",
-		"react": "^18.0.0",
-		"react-dom": "^18.0.0",
-		"tailwindcss": "^3.0.24",
+		"@tanstack/react-query": "^5.8.4",
+		"@types/react": "^18.2.37",
+		"@types/react-dom": "^18.2.15",
+		"astro": "^3.5.5",
+		"react": "^18.2.0",
+		"react-dom": "^18.2.0",
+		"tailwindcss": "^3.3.5",
 		"typescript": "^5.2.2"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20231025.0",
-		"@tsndr/cloudflare-worker-jwt": "^2.2.5",
-		"prettier": "^3.0.3",
-		"prettier-plugin-astro": "^0.12.1",
+		"@tsndr/cloudflare-worker-jwt": "^2.3.2",
+		"prettier": "^3.1.0",
+		"prettier-plugin-astro": "^0.12.2",
 		"prettier-plugin-tailwindcss": "^0.5.7",
-		"wrangler": "^3.15.0"
+		"wrangler": "^3.16.0"
 	}
 }
