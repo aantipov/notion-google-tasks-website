@@ -1,6 +1,21 @@
 # build output
 dist/
 
+# wrangler project
+_worker.bundle
+.dev.vars
+.wrangler/
+
+functions/*
+!functions/google-auth/
+!functions/google-auth/*
+!functions/notion-auth/
+!functions/notion-auth/*
+!functions/api/
+!functions/api/*
+!functions/env.d.ts
+!functions/tsconfig.json
+
 # generated types
 .astro/
 

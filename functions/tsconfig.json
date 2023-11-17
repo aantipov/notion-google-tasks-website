@@ -1,0 +1,18 @@
+{
+	"compilerOptions": {
+		"baseUrl": ".",
+		"noEmit": true,
+		"module": "esnext",
+		"target": "esnext",
+		"lib": ["esnext"],
+		"types": ["@cloudflare/workers-types"],
+		"paths": {
+			"@/*": ["../src/*"],
+			"@helpers/*": ["../src/helpers/*"]
+		},
+		"strict": true,
+		"moduleResolution": "node",
+		"verbatimModuleSyntax": true
+	},
+	"exclude": ["node_modules", "dist", "test"]
+}

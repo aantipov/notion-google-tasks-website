@@ -1,0 +1,15 @@
+{
+	"printWidth": 80,
+	"singleQuote": true,
+	"semi": true,
+	"useTabs": true,
+	"plugins": ["prettier-plugin-astro", "prettier-plugin-tailwindcss"],
+	"overrides": [
+		{
+			"files": "constants.ts",
+			"options": {
+				"printWidth": 120
+			}
+		}
+	]
+}
