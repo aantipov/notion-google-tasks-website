@@ -54,48 +54,49 @@ export function Step({
 }
 
 export default function ConnectNotion(props: { hasToken: boolean }) {
-	const { error: userError, data: userData } = useUserQuery(props.hasToken);
-	const dbsMutationQuery = useDBsMutation();
-	const enabled = !userError && !!userData?.tasksListId;
-	const { data: dbsData } = useDBsQuery(enabled);
+	const userQ = useUserQuery(props.hasToken);
+	const dbsMutationQ = useDBsMutation();
+	const isGoogleSetUp = !userQ.error && !!userQ.data?.tasksListId;
+	const isNotionAuthorized = !userQ.error && !!userQ.data?.nConnected;
+	const dbsQ = useDBsQuery(isGoogleSetUp && isNotionAuthorized);
 
 	// TODO: auto select Notion database if only one is connected
 	useEffect(() => {
-		if (dbsData?.length === 1 && dbsData[0].id !== userData?.databaseId) {
-			dbsMutationQuery.mutate(dbsData[0].id);
+		if (dbsQ.data?.length === 1 && dbsQ.data[0].id !== userQ.data?.databaseId) {
+			dbsMutationQ.mutate(dbsQ.data[0].id);
 		}
-	}, [dbsData]);
+	}, [dbsQ.data]);
 
 	const selectedDBName = (() => {
-		if (userData?.databaseId && dbsData) {
-			return dbsData.find((db) => db.id === userData.databaseId)?.title;
+		if (userQ.data?.databaseId && dbsQ.data) {
+			return dbsQ.data.find((db) => db.id === userQ.data.databaseId)?.title;
 		}
 		return null;
 	})();
 
-	if (!enabled) {
+	if (userQ.isLoading || dbsQ.isLoading) {
 		return <Step enabled={false} state="not-connected" />;
 	}
 
-	if (enabled && !userData.nConnected) {
-		return <Step enabled={enabled} state="not-connected" />;
+	if (!isGoogleSetUp) {
+		return <Step enabled={false} state="not-connected" />;
 	}
 
-	if (
-		enabled &&
-		!!userData.nConnected &&
-		(!userData.databaseId || dbsData?.length !== 1)
-	) {
+	if (!userQ.data?.nConnected) {
+		return <Step enabled={isGoogleSetUp} state="not-connected" />;
+	}
+
+	if (!userQ.data.databaseId || dbsQ.data?.length !== 1) {
 		return (
 			<>
-				<Step enabled={enabled} state="in-progress" />
-				{dbsData && dbsData?.length > 1 && (
+				<Step enabled={isGoogleSetUp} state="in-progress" />
+				{dbsQ.data && dbsQ.data?.length > 1 && (
 					<div className="mt-1 text-orange-500">
 						You selected more than one database. Please update Notion Connection
 						and choose only one Notion Database to be connected to Google Tasks
 					</div>
 				)}
-				{dbsData && dbsData?.length === 0 && (
+				{dbsQ.data && dbsQ.data?.length === 0 && (
 					<div className="mt-1 text-orange-500">
 						You have not selected any Notion database. Please update Notion
 						Connection and choose exactly one Notion Database to be connected to
@@ -106,24 +107,13 @@ export default function ConnectNotion(props: { hasToken: boolean }) {
 		);
 	}
 
-	if (
-		enabled &&
-		!!userData.nConnected &&
-		!!userData.databaseId &&
-		dbsData?.length == 1
-	) {
-		return (
-			<div>
-				<Step enabled={enabled} state="connected" />
-				<div className="my-1 flex items-center">
-					<div className="mr-1">
-						Selected Notion Database: "{selectedDBName}"
-					</div>
-					<EditButton href={NOTION_AUTH_URL} />
-				</div>
+	return (
+		<div>
+			<Step enabled={isGoogleSetUp} state="connected" />
+			<div className="my-1 flex items-center">
+				<div className="mr-1">Selected Notion Database: "{selectedDBName}"</div>
+				<EditButton href={NOTION_AUTH_URL} />
 			</div>
-		);
-	}
-
-	return <div className="mt-5">HHHHHHH</div>;
+		</div>
+	);
 }
