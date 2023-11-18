@@ -7,10 +7,6 @@ import {
 import { EditButton } from './EditButton';
 import LinkButton from './LinkButton';
 
-interface PropsT {
-	hasToken: boolean;
-}
-
 interface TaskListOptionProps {
 	id: string;
 	title: string;
@@ -63,7 +59,10 @@ export function Step({
 	);
 }
 
-export default function ConnectGoogle(props: PropsT) {
+export default function ConnectGoogle(props: {
+	hasToken: boolean;
+	isFeatureEnabled: boolean;
+}) {
 	const userQuery = useUserQuery(props.hasToken);
 	const tasksListsQuery = useTasksListsQuery(props.hasToken);
 	const tasksListsMutation = useTasksListsMutation();
@@ -94,7 +93,11 @@ export default function ConnectGoogle(props: PropsT) {
 		return null;
 	})();
 
-	if (!props.hasToken) {
+	if (!props.isFeatureEnabled) {
+		return <Step disabled />;
+	}
+
+	if (!props.hasToken || !props.isFeatureEnabled) {
 		return <Step />;
 	}
 

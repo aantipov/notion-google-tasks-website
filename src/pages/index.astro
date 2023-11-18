@@ -18,6 +18,9 @@ try {
 	Astro.cookies.set('gtoken', '', { expires: new Date(0) });
 	Astro.cookies.set('ntoken', '', { expires: new Date(0) });
 }
+const isFeatureEnabled =
+	Astro.url.hostname !== 'notion-google-tasks-sync.com' ||
+	Astro.url.searchParams.get('q') === '123';
 ---
 
 <Layout>
@@ -37,7 +40,11 @@ try {
 		>
 			Start Syncing
 		</h1>
-		<Main client:load hasToken={!!hasGToken} />
+		<Main
+			client:load
+			hasToken={!!hasGToken}
+			isFeatureEnabled={isFeatureEnabled}
+		/>
 	</section>
 
 	<section class="my-48 flex flex-col items-center justify-center">
