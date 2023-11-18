@@ -1,0 +1,86 @@
+---
+import Layout from '@/layouts/Layout.astro';
+const serviceName = 'Notion Google Tasks Sync Service';
+const updatedOn = '2023-11-22';
+---
+
+<Layout>
+	<div class="container mx-auto max-w-2xl p-4">
+		<a href="/" class="text-blue-500 hover:text-blue-700">Go to Home Page</a>
+
+		<h1 class="mb-4 mt-4 text-xl font-bold">Terms of Use for {serviceName}</h1>
+		<p><strong>Last Updated:</strong> {updatedOn}</p>
+
+		<section class="mt-6">
+			<h2 class="text-lg font-semibold">1. Service Description</h2>
+			<p>
+				Our service synchronizes data between your Google Tasks and Notion. This
+				includes task title, status, and due date. Synchronization occurs every
+				5 minutes.
+			</p>
+		</section>
+
+		<section class="mt-6">
+			<h2 class="text-lg font-semibold">2. Task Deletion and Archival</h2>
+			<p>
+				Tasks deleted in Google Tasks are archived in Notion, and tasks archived
+				or deleted in Notion are marked as completed in Google Tasks.
+			</p>
+		</section>
+
+		<section class="mt-6">
+			<h2 class="text-lg font-semibold">3. Limitations</h2>
+			<ul class="ml-6 list-disc">
+				<li>
+					Syncing is limited to one task list in Google Tasks and one database
+					in Notion per account.
+				</li>
+				<li>Tasks hierarchy is not respected.</li>
+				<li>Task descriptions are not synchronized.</li>
+				<li>Supports syncing up to 50 tasks.</li>
+			</ul>
+		</section>
+
+		<section class="mt-6">
+			<h2 class="text-lg font-semibold">4. Service Availability</h2>
+			<p>
+				The service is provided for free and while we strive for continuous
+				operation, we do not guarantee specific uptime.
+			</p>
+		</section>
+
+		<section class="mt-6">
+			<h2 class="text-lg font-semibold">5. Data Retention</h2>
+			<p>
+				User data is not deleted by us, but users can request data deletion by
+				contacting us.
+			</p>
+		</section>
+
+		<section class="mt-6">
+			<h2 class="text-lg font-semibold">6. Changes to Terms</h2>
+			<p>
+				We may modify these Terms and will notify users of any changes on our
+				website.
+			</p>
+		</section>
+
+		<section class="mt-6">
+			<h2 class="text-lg font-semibold">7. Reporting Issues</h2>
+			<p>
+				Questions, feature requests, or issues can be reported by creating an
+				issue in our <a
+					href="https://github.com/aantipov/notion-google-tasks-sync/issues"
+					class="text-blue-500 hover:text-blue-700">GitHub repository</a
+				>.
+			</p>
+		</section>
+
+		<section class="mb-8 mt-6">
+			<h2 class="text-lg font-semibold">8. Contact Information</h2>
+			<p>
+				For other questions or concerns, contact us at antipov.alexei@gmail.com.
+			</p>
+		</section>
+	</div>
+</Layout>
