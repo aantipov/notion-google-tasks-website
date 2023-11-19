@@ -29,14 +29,21 @@ export default function Button({
 	loading?: boolean;
 	onClick?: () => void;
 }) {
-	const opacity = disabled ? 'opacity-40' : '';
-	const hover = disabled ? '' : 'hover:bg-blue-500';
-	const cursor = disabled ? 'cursor-not-allowed' : 'cursor-pointer';
+	if (disabled) {
+		return (
+			<button
+				disabled
+				className="cursor-not-allowed rounded bg-blue-300 px-4 py-2 font-bold text-white"
+			>
+				{children}
+				{loading && <SpinnerIcon />}
+			</button>
+		);
+	}
 	return (
 		<button
 			onClick={onClick}
-			disabled={disabled}
-			className={`${opacity} ${hover} ${cursor} rounded bg-blue-500 px-4 py-2 font-bold text-white`}
+			className="cursor-pointer rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
 		>
 			{children}
 			{loading && <SpinnerIcon />}

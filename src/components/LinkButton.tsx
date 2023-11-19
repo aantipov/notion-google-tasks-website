@@ -29,20 +29,28 @@ export default function LinkButton({
 	disabled?: boolean;
 	loading?: boolean;
 }) {
-	const opacity = disabled ? 'opacity-40' : '';
-	const hover = disabled ? '' : 'hover:bg-blue-500';
-	const cursor = disabled ? 'cursor-not-allowed' : 'cursor-pointer';
 	// TODO: find out why disabling doesn't work. Link it still clickable
 	const handleClick = (event: any) => {
 		if (disabled) {
 			event.preventDefault();
 		}
 	};
+	if (disabled) {
+		return (
+			<a
+				className="cursor-not-allowed rounded bg-blue-300 px-4 py-2 font-bold text-white"
+				tabIndex={-1}
+			>
+				{children}
+				{loading && <SpinnerIcon />}
+			</a>
+		);
+	}
 	return (
 		<a
 			href={href}
 			onClick={(event) => handleClick(event)}
-			className={`${opacity} ${hover} ${cursor} rounded bg-blue-500 px-4 py-2 font-bold text-white`}
+			className="cursor-pointer rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
 		>
 			{children}
 			{loading && <SpinnerIcon />}
