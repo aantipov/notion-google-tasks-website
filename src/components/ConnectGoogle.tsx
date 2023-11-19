@@ -6,6 +6,7 @@ import {
 } from '@/helpers/api';
 import { EditButton } from './EditButton';
 import LinkButton from './LinkButton';
+import Warning from './Warning';
 
 interface TaskListOptionProps {
 	id: string;
@@ -18,7 +19,7 @@ export function TaskListOption(props: TaskListOptionProps) {
 	const { id, title, selected, onSelect } = props;
 
 	return (
-		<div>
+		<div className="mt-1">
 			<input
 				type="radio"
 				id={id}
@@ -27,7 +28,9 @@ export function TaskListOption(props: TaskListOptionProps) {
 				checked={selected}
 				onChange={onSelect}
 			/>
-			<label htmlFor={id}>{title}</label>
+			<label htmlFor={id} className="ml-2">
+				{title}
+			</label>
 		</div>
 	);
 }
@@ -136,9 +139,9 @@ export default function ConnectGoogle(props: {
 			<div className="w-full">
 				<Step state="in-progress" />
 
-				<div className="mt-1 text-orange-500">
+				<Warning>
 					Multiple taskslists found. Choose the one you want to sync with Notion
-				</div>
+				</Warning>
 
 				<div className="my-1">
 					{tasksListsQuery.data.map((gTaskList) => (

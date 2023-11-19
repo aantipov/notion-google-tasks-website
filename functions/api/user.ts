@@ -78,11 +78,13 @@ export const onRequestGet: PagesFunction<CFEnvT> = async ({ env, request }) => {
 		}
 	}
 
-	const kvDataFiltered = {
-		...kvData,
+	const kvDataFiltered: Partial<KVDataT> = {
+		tasksListId: kvData.tasksListId,
+		databaseId: kvData.databaseId,
+		created: kvData.created,
+		modified: kvData.modified,
+		lastSynced: kvData.lastSynced,
 		nConnected: !!kvData.nToken,
-		nToken: undefined,
-		gToken: undefined,
 	};
 
 	const headers = new Headers();
