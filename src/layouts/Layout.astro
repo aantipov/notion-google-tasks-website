@@ -1,20 +1,21 @@
 ---
 interface Props {
 	title?: string;
+	desc?: string;
 }
 
-const defaultTitle = 'Notion - Google Tasks syncronisation service';
-const { title = defaultTitle } = Astro.props;
+const defaultTitle =
+	'Notion-Google Tasks: Sync Your To-Dos Effortlessly | Free, Fast, Secure';
+const defaultDescription =
+	'Synchronize your tasks between Notion and Google Tasks instantly and securely. Our two-way sync service ensures your data is always up-to-date and safe. Try it for free today!';
+const { title = defaultTitle, desc = defaultDescription } = Astro.props;
 ---
 
 <!doctype html>
 <html lang="en">
 	<head>
 		<meta charset="UTF-8" />
-		<meta
-			name="description"
-			content="Notion - Google Tasks syncronisation service"
-		/>
+		<meta name="description" content={desc} />
 		<meta name="viewport" content="width=device-width" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<meta name="generator" content={Astro.generator} />
