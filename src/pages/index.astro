@@ -47,18 +47,21 @@ const isFeatureEnabled =
 		/>
 	</section>
 
-	<section class="my-48 flex flex-col items-center justify-center">
+	<section class="my-36 flex flex-col items-center justify-center">
 		<h1
 			class="px-8 text-5xl font-bold tracking-wide sm:px-8 sm:text-6xl md:px-20 lg:px-4 lg:text-6xl xl:text-6xl"
 		>
 			Limitations
 		</h1>
 		<div class="mt-8 flex w-full flex-wrap justify-center gap-4">
-			TODO
 			<ul>
-				<li>1. sync title only</li>
-				<li>2. no support for tasks hierarchy</li>
-				<li>3. one syncronisation per google account</li>
+				<li>
+					1. Only tasks' <pre class="inline">title</pre>, <pre
+						class="inline">due date</pre> and <pre class="inline">status</pre> are synced. Tasks
+					descriptions are not synced.
+				</li>
+				<li>2. Tasks hirearchy is not respected</li>
+				<li>3. No support for syncing multiple google tasklists</li>
 			</ul>
 		</div>
 	</section>

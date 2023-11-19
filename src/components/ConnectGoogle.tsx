@@ -46,7 +46,7 @@ export function Step({
 			<span className="text-2xl">Step 1.&nbsp;</span>
 			{state === 'not-connected' && (
 				<LinkButton href="/google-auth" disabled={disabled} loading={loading}>
-					Connect Google Tasks {disabled && 'DISABLED'}
+					Connect Google Tasks
 				</LinkButton>
 			)}
 			{state === 'in-progress' && (

@@ -11,7 +11,7 @@ export default function Main(props: {
 }) {
 	return (
 		<QueryClientProvider client={queryClient}>
-			<div className="mt-8 w-[80%] max-w-lg rounded-2xl border-4 border-gray-800 p-5">
+			<div className="mt-8 w-[80%] max-w-xl rounded-xl border-2 border-gray-200 p-8">
 				<ConnectGoogle
 					hasToken={props.hasToken}
 					isFeatureEnabled={props.isFeatureEnabled}
