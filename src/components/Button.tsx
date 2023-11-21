@@ -43,7 +43,7 @@ export default function Button({
 	return (
 		<button
 			onClick={onClick}
-			className="cursor-pointer rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
+			className="cursor-pointer rounded border border-transparent bg-blue-500 px-4 py-2 font-semibold text-white hover:bg-blue-700"
 		>
 			{children}
 			{loading && <SpinnerIcon />}

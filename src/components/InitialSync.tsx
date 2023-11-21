@@ -4,36 +4,56 @@ import {
 	useSyncMutation,
 	useUserQuery,
 } from '@/helpers/api';
-import Button from './Button';
+import { Icon } from '@iconify/react';
 
 type SyncStateT = 'not-synced' | 'ready' | 'syncing' | 'synced';
 
 export function Step({
 	syncState: state,
-	enabled,
-	loading = false,
-	onClick = () => {},
+	onClick = () => {}, // is needed only for the 'ready' state
+	children,
 }: {
 	syncState: SyncStateT;
-	enabled: boolean;
-	loading?: boolean;
 	onClick?: () => void;
+	children?: React.ReactNode;
 }) {
-	return (
-		<div className="flex w-full items-center">
-			<span className="text-2xl">Step 3.&nbsp;</span>
-			{state !== 'synced' && (
-				<Button
-					loading={state === 'syncing' || loading}
-					disabled={!enabled || state !== 'ready'}
+	if (state === 'not-synced') {
+		return (
+			<div className="flex w-full cursor-not-allowed items-center rounded border p-5 text-2xl font-semibold text-gray-400 shadow-md">
+				<div className="text-2xl">
+					Step 3.
+					<span className="ml-2">Perform Initial Sync</span>
+				</div>
+			</div>
+		);
+	}
+
+	if (state === 'ready' || state === 'syncing') {
+		return (
+			<div className="w-full items-center rounded-lg border border-gray-200 p-5 text-gray-800 shadow-md">
+				<div className="text-2xl font-semibold">
+					Step 3.
+					<span className="ml-2">Initial Syncronization</span>
+				</div>
+				{children}
+				<button
+					disabled={state === 'syncing'}
 					onClick={onClick}
+					className="w-full cursor-pointer rounded border border-transparent bg-blue-500 px-4 py-2 font-semibold text-white hover:bg-blue-700"
 				>
-					{state === 'syncing' ? 'Syncing...' : 'Perform Initial Sync'}
-				</Button>
-			)}
-			{state === 'synced' && (
-				<span className="text-xl text-green-600">Data Synced Successfully</span>
-			)}
+					Synchronize
+				</button>
+			</div>
+		);
+	}
+
+	// Synced state
+	return (
+		<div className="w-full items-center rounded-lg border border-gray-200 p-5 text-gray-800 shadow-md">
+			<div className="text-2xl font-semibold text-green-500">
+				Step 3.
+				<span className="ml-2">Initial Syncronization Completed</span>
+			</div>
 		</div>
 	);
 }
@@ -62,60 +82,74 @@ export default function InitialSync(props: { hasToken: boolean }) {
 	};
 
 	if (userQ.isError) {
+		return <Step syncState="not-synced" />;
+	}
+
+	if (gtasksQ.isError || ntasksQ.isError) {
 		return (
 			<div>
-				<Step enabled={false} syncState={syncState} />
-				<div className="text-red-600">Something wrong happened!</div>
+				<Step syncState="not-synced" />;
+				<div className="text-red-600">
+					Error while loading data. Try to realod the page
+				</div>
+			</div>
+		);
+	}
+
+	if (syncM.isError) {
+		return (
+			<div>
+				<Step syncState="not-synced" />
+				<div className="text-red-600">Something wrong happened</div>
 			</div>
 		);
 	}
 
 	if (gtasksQ.isLoading || ntasksQ.isLoading) {
-		return <Step enabled={false} syncState={syncState} loading />;
+		return <Step syncState="not-synced" />;
 	}
 
 	if (syncState === 'synced') {
-		return (
-			<div>
-				<Step
-					enabled={readyToSync}
-					syncState={syncState}
-					onClick={syncHandler}
-				/>
-				<div>
-					Congratulations! 🎉 You are all set! Automatic syncing in the
-					background is setup.
-				</div>
-			</div>
-		);
+		return <Step syncState="synced" />;
 	}
 
+	// Ready to sync
 	if (userQ.data && userQ.data.tasksListId && userQ.data.databaseId) {
 		return (
-			<div>
-				<Step
-					enabled={readyToSync}
-					syncState={syncState}
-					onClick={syncHandler}
-				/>
-				<div>
-					Review the tasks to by synced initially between the two systems
+			<Step syncState={syncState} onClick={syncHandler}>
+				<div className="mt-2">
+					Review the tasks to be synced initially between the two systems and
+					click "Synchonize" to start the process.
 				</div>
-				<div className="flex">
+				<div className="my-3 grid grid-cols-3">
 					<div>
-						Notion
-						<div>{ntasksQ.data?.map((task) => <div>{task.title}</div>)}</div>
+						<div className="flex font-bold">
+							<Icon icon="logos:notion-icon" className="mr-1 text-2xl" />
+							<span className="text-lg">Notion</span>
+						</div>
+						<ul className="ml-4 list-disc">
+							{ntasksQ.data?.map((task) => <li key={task.id}>{task.title}</li>)}
+						</ul>
 					</div>
-					<div>Icon</div>
+					<div className="flex items-center justify-center">
+						<Icon
+							icon="material-symbols-light:sync-alt-rounded"
+							className="text-6xl"
+						/>
+					</div>
 					<div>
-						Google Tasks
-						<div>{gtasksQ.data?.map((task) => <div>{task.title}</div>)}</div>
+						<div className="flex font-bold">
+							<Icon icon="arcticons:google-tasks" className="mr-1 text-2xl" />
+							<span className="text-lg">Google Tasks</span>
+						</div>
+						<ul className="ml-4 list-disc">
+							{gtasksQ.data?.map((task) => <li key={task.id}>{task.title}</li>)}
+						</ul>
 					</div>
 				</div>
-				,
-			</div>
+			</Step>
 		);
 	}
 
-	return <Step enabled={false} syncState={'not-synced'} />;
+	return <Step syncState="not-synced" />;
 }

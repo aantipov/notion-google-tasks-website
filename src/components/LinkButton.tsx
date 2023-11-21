@@ -50,7 +50,7 @@ export default function LinkButton({
 		<a
 			href={href}
 			onClick={(event) => handleClick(event)}
-			className="cursor-pointer rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
+			className="inline-block cursor-pointer rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
 		>
 			{children}
 			{loading && <SpinnerIcon />}
