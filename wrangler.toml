@@ -7,17 +7,17 @@
 [[d1_databases]]
 binding = "DB" # Should match preview_database_id
 database_name = "notion-gtasks"
-database_id = "the-id-of-your-D1-database-goes-here" # wrangler d1 info YOUR_DATABASE_NAME
+database_id = "22e7ad09-c2ae-4374-85f6-6f26b9a5fb5e" # wrangler d1 info YOUR_DATABASE_NAME
 preview_database_id = "DB" # Required for Pages local development
 
 # Variable bindings. These are arbitrary, plaintext strings (similar to environment variables)
 # Note: Use secrets to store sensitive data.
 # Docs: https://developers.cloudflare.com/workers/platform/environment-variables
 [vars]
-GOOGLE_REDIRECT_URI = "https://notion-gtasks-worker.moiva.workers.dev/auth-callback"
+# GOOGLE_REDIRECT_URI = "https://notion-gtasks-worker.moiva.workers.dev/auth-callback"
 
-[triggers]
-crons = ["* * * * *"]
+# [triggers]
+# crons = ["* * * * *"]
 
 # [env.production.vars]
 
