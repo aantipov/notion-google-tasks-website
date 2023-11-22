@@ -2,8 +2,10 @@ import * as notionApi from '@/functions-helpers/notion-api';
 import * as googleApi from '@/functions-helpers/google-api';
 import { parseRequestCookies } from '@/helpers/parseRequestCookies';
 import { decodeJWTTokens } from '@/helpers/decodeJWTTokens';
-import type { KVDataPartialT, KVDataT } from '@/types';
-import type { GTaskT } from './google-tasks';
+import { DELETE_GTOKEN_COOKIE } from '@/constants';
+import { drizzle } from 'drizzle-orm/d1';
+import { users, type UserRawT, type UserT } from '@/schema';
+import { eq } from 'drizzle-orm';
 
 interface NPropsMapT {
 	title: { id: string; name: string; type: 'title' };
@@ -23,24 +25,36 @@ export const onRequestPost: PagesFunction<CFEnvT> = async ({
 	const { gToken } = await getTokensFromCookie(request, env);
 
 	if (!gToken) {
-		return new Response('Invalid token', { status: 401 });
+		return new Response('Invalid token', {
+			status: 401,
+			headers: [['Set-Cookie', DELETE_GTOKEN_COOKIE]],
+		});
 	}
 
-	const kvData = (await env.NOTION_GTASKS_KV.get<KVDataPartialT>(
-		gToken.user.email,
-		{ type: 'json' },
-	)) as KVDataT;
+	const email = gToken.user.email;
+	const db = drizzle(env.DB, { logger: true });
+	let userData: UserRawT;
+	try {
+		[userData] = await db
+			.select()
+			.from(users)
+			.where(eq(users.email, email))
+			.limit(1);
+	} catch (error) {
+		return new Response('Error fetching user data', { status: 500 });
+	}
 
-	if (!kvData.databaseId || !kvData.nToken) {
+	const { nToken, databaseId, tasklistId } = userData;
+
+	if (!databaseId || !nToken || !tasklistId) {
 		return new Response('Notion is not connected or database is not selected', {
 			status: 400,
 		});
 	}
 	const nDBSchema = await notionApi.fetchDatabaseSchema(
-		kvData.databaseId,
-		kvData.nToken.access_token,
+		databaseId,
+		nToken.access_token,
 	);
-	// console.log('ndbScheme', JSON.stringify(ndbScheme, null, 2));
 
 	// TODO: ensure the user's selected database has all the required properties
 	// TODO: ensure Status prop has proper values
@@ -59,44 +73,45 @@ export const onRequestPost: PagesFunction<CFEnvT> = async ({
 	} as NPropsMapT;
 
 	const { items: nTasks } = await notionApi.fetchOpenTasks(
-		kvData.databaseId,
+		databaseId,
 		nPropsMap,
-		kvData.nToken.access_token,
+		nToken.access_token,
 	);
 	const { items: gTasks } = await googleApi.fetchOpenTasks(
-		kvData.tasksListId,
+		tasklistId,
 		gToken.access_token,
 	);
-
-	console.log('nTasks', JSON.stringify(nTasks, null, 2));
-	console.log('gTasks', JSON.stringify(gTasks, null, 2));
 
 	const nIdTuples = await notionApi.createAllTasks(
 		gTasks,
-		kvData.databaseId,
+		databaseId,
 		nPropsMap,
-		kvData.nToken.access_token,
+		nToken.access_token,
 	);
-	console.log('nIdTuples', JSON.stringify(nIdTuples, null, 2));
 
 	const gIdTuples = await googleApi.createAllGoogleTasks(
 		nTasks,
-		kvData.tasksListId,
+		tasklistId,
 		gToken.access_token,
 	);
-	console.log('gIdTuples', JSON.stringify(gIdTuples, null, 2));
 
-	const kvDataUpdated = {
-		...kvData,
-		lastSynced: new Date().toISOString(),
-	} as KVDataT;
+	let updUserData: UserRawT;
 
-	await env.NOTION_GTASKS_KV.put(
-		gToken.user.email,
-		JSON.stringify(kvDataUpdated),
-	);
+	try {
+		[updUserData] = await db
+			.update(users)
+			.set({
+				mapping: [...nIdTuples, ...gIdTuples],
+				lastSynced: new Date(),
+				modified: new Date(),
+			})
+			.where(eq(users.email, email))
+			.returning();
+	} catch (error) {
+		return new Response('Error updating user data', { status: 500 });
+	}
 
-	return new Response(JSON.stringify({ hello: 'hello' }), {
+	return new Response(JSON.stringify(getSafeUserData(updUserData)), {
 		status: 200,
 		headers: { 'Content-Type': 'application/json' },
 	});
@@ -105,4 +120,9 @@ export const onRequestPost: PagesFunction<CFEnvT> = async ({
 async function getTokensFromCookie(req: Request, env: CFEnvT) {
 	const { gJWTToken, nJWTToken } = parseRequestCookies(req);
 	return await decodeJWTTokens(gJWTToken, nJWTToken, env.JWT_SECRET);
+}
+
+function getSafeUserData(user: UserRawT): UserT {
+	const { gToken: _, nToken: __, mapping: ___, ...safeUserData } = user;
+	return { ...safeUserData, nConnected: !!user.nToken };
 }

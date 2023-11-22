@@ -4,7 +4,7 @@ import { Icon } from '@iconify/react';
 export default function ConnectSuccess({ hasToken }: { hasToken: boolean }) {
 	const { isError, data } = useUserQuery(hasToken);
 
-	if (!isError && data?.tasksListId && data.databaseId && data.lastSynced) {
+	if (!isError && data?.tasklistId && data.databaseId && data.lastSynced) {
 		return (
 			<div className="-m-5 mt-12 flex flex-col items-center bg-green-50 p-5">
 				<Icon icon="emojione:rocket" className="text-8xl" />

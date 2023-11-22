@@ -12,7 +12,7 @@ import {
 import type { GTaskT } from '@/helpers/api';
 import type { NTaskT } from './notion-api';
 
-export interface GTasksResponseT {
+interface GTasksResponseT {
 	nextPageToken?: string;
 	items: GTaskT[];
 }
@@ -36,7 +36,7 @@ export interface GTokenResponseT extends OritinalTokenResponseT {
 	user: UserInfoResponseT;
 }
 
-export interface GTasksListT {
+export interface GTasklistT {
 	id: string;
 	title: string;
 }
@@ -53,11 +53,11 @@ class FetchError extends Error {
  * Fetch open tasks for initial sync
  */
 export async function fetchOpenTasks(
-	tasksListId: string,
+	tasklistId: string,
 	token: string,
 ): Promise<GTasksResponseT> {
 	const tasksAPIUrl = new URL(
-		`https://tasks.googleapis.com/tasks/v1/lists/${tasksListId}/tasks`,
+		`https://tasks.googleapis.com/tasks/v1/lists/${tasklistId}/tasks`,
 	);
 	tasksAPIUrl.searchParams.set('maxResults', GOOGLE_MAX_TASKS.toString());
 	tasksAPIUrl.searchParams.set('showCompleted', 'false');
@@ -80,7 +80,7 @@ type IdTupleT = [GTaskIdT, NTaskIdT];
 
 export async function createAllGoogleTasks(
 	nTasks: NTaskT[],
-	gTasksListId: string,
+	gTasklistId: string,
 	accessToken: string,
 ): Promise<IdTupleT[]> {
 	const promises = [];
@@ -89,7 +89,7 @@ export async function createAllGoogleTasks(
 			setTimeout(
 				async () => {
 					const nTask = nTasks[i];
-					const gTask = await createTask(nTask, gTasksListId, accessToken);
+					const gTask = await createTask(nTask, gTasklistId, accessToken);
 					resolveTask([gTask.id, nTask.id]);
 				},
 				Math.floor(i / NOTION_RATE_LIMIT) * 1000,
@@ -102,13 +102,13 @@ export async function createAllGoogleTasks(
 
 async function createTask(
 	nTask: NTaskT,
-	gTasksListId: string,
+	gTasklistId: string,
 	accessToken: string, // access token
 ): Promise<GTaskT> {
 	console.log('Creating Google task', nTask.title);
 	try {
 		const tasksAPIUrl = new URL(
-			`https://tasks.googleapis.com/tasks/v1/lists/${gTasksListId}/tasks`,
+			`https://tasks.googleapis.com/tasks/v1/lists/${gTasklistId}/tasks`,
 		);
 
 		const tasksResp = await fetch(tasksAPIUrl.toString(), {

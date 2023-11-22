@@ -7,11 +7,15 @@
 		"astro": "astro",
 		"dev": "astro dev --port 3000",
 		"start": "astro dev --port 3000",
-		"start:functions": "astro build && wrangler pages dev ./dist --port=3000 --kv=NOTION_GTASKS_KV --compatibility-flags=nodejs_compat",
+		"start:functions": "astro build && wrangler pages dev ./dist --port=3000 --d1=DB --compatibility-flags=nodejs_compat",
 		"build": "astro check && astro build",
 		"preview": "astro preview",
 		"deploy": "astro build && wrangler pages deploy ./dist",
 		"_functions:build": "wrangler pages functions build ./functions",
+		"wrangler": "wrangler",
+		"db": "wrangler d1 execute notion-gtasks --local",
+		"generate": "drizzle-kit generate:sqlite --schema=src/schema.ts",
+		"up": "drizzle-kit up:sqlite --schema=src/schema.ts",
 		"upgrade": "pnpx npm-upgrade"
 	},
 	"dependencies": {
@@ -25,6 +29,7 @@
 		"@types/react": "^18.2.37",
 		"@types/react-dom": "^18.2.15",
 		"astro": "^3.5.5",
+		"drizzle-orm": "^0.29.0",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
 		"tailwindcss": "^3.3.5",
@@ -34,8 +39,10 @@
 		"@cloudflare/workers-types": "^4.20231025.0",
 		"@iconify/react": "^4.1.1",
 		"@tsndr/cloudflare-worker-jwt": "^2.3.2",
+		"drizzle-kit": "^0.20.4",
 		"prettier": "^3.1.0",
 		"prettier-plugin-astro": "^0.12.2",
+		"prettier-plugin-sql": "^0.16.0",
 		"prettier-plugin-tailwindcss": "^0.5.7",
 		"wrangler": "^3.16.0"
 	}

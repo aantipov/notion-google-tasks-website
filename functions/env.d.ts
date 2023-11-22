@@ -6,6 +6,6 @@ interface CFEnvT {
 	NOTION_CLIENT_ID: string;
 	NOTION_CLIENT_SECRET: string;
 	NOTION_REDIRECT_URI: string;
-	NOTION_GTASKS_KV: KVNamespace;
 	JWT_SECRET: string;
+	DB: D1Database;
 }

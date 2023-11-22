@@ -1,30 +1,9 @@
 import * as googleApi from '@/functions-helpers/google-api';
 import jwt from '@tsndr/cloudflare-worker-jwt';
-import type { KVDataPartialT, KVDataT } from '@/types';
 import { DELETE_GTOKEN_COOKIE, DELETE_NTOKEN_COOKIE } from '@/constants';
-
-interface BodyT {
-	id: string;
-}
-
-// https://developers.google.com/tasks/reference/rest/v1/tasks#resource:-task
-export interface GTaskT {
-	id: string;
-	title: string; // can be an empty string
-	status: 'needsAction' | 'completed';
-	due?: string; // ISO Date string 2023-10-31T00:00:00.000Z time portion is always 00:00:00. We can't get or set time.
-	notes?: string; // == Description
-	updated: string; // ISO date string '2023-10-25T11:56:22.678Z'
-	parent?: string; // omitted if task is a top-level task
-	completed?: string; // Complettion date of the task
-	deleted?: boolean;
-	hidden?: boolean;
-}
-
-export interface GTasksResponseT {
-	nextPageToken: string;
-	items: GTaskT[];
-}
+import { users, type UserRawT } from '@/schema';
+import { drizzle } from 'drizzle-orm/d1';
+import { eq } from 'drizzle-orm';
 
 /**
  * Get user's tasklists from Google Tasks
@@ -32,40 +11,43 @@ export interface GTasksResponseT {
 export const onRequestGet: PagesFunction<CFEnvT> = async ({ env, request }) => {
 	const gToken = await decodeGTokenFromCookie(request, env);
 	if (!gToken) {
-		return new Response('Invalid token', { status: 401 });
+		return new Response('Invalid token', {
+			status: 401,
+			headers: [['Set-Cookie', DELETE_GTOKEN_COOKIE]],
+		});
 	}
 
-	try {
-		const kvData = (await env.NOTION_GTASKS_KV.get<KVDataPartialT>(
-			gToken.user.email,
-			{ type: 'json' },
-		)) as KVDataT;
+	const userEmail = gToken.user.email.toLowerCase();
+	const db = drizzle(env.DB, { logger: true });
+	let userData: UserRawT;
 
-		if (!kvData.tasksListId) {
+	try {
+		[userData] = await db
+			.select()
+			.from(users)
+			.where(eq(users.email, userEmail))
+			.limit(1);
+
+		if (!userData?.tasklistId) {
 			return new Response('No tasklist selected', { status: 400 });
 		}
 
 		const res = await googleApi.fetchOpenTasks(
-			kvData.tasksListId,
+			userData.tasklistId,
 			gToken.access_token,
 		);
 
-		return new Response(JSON.stringify(res), {
-			status: 200,
-			headers: { 'Content-Type': 'application/json' },
-		});
-	} catch (error: any) {
+		return Response.json(res);
+	} catch (error) {
 		console.error('Error fetching google tasks', error);
+		// @ts-ignore
 		if (error?.code === 401) {
 			return new Response('Invalid token', {
 				status: 401,
-				headers: [
-					['Set-Cookie', DELETE_GTOKEN_COOKIE],
-					['Set-Cookie', DELETE_NTOKEN_COOKIE],
-				],
+				headers: [['Set-Cookie', DELETE_GTOKEN_COOKIE]],
 			});
 		}
-		return new Response('Error fetching google tasks', { status: 500 });
+		return new Response('Error fetching user data', { status: 500 });
 	}
 };
 

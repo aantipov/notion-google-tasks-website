@@ -3,7 +3,11 @@
 	"singleQuote": true,
 	"semi": true,
 	"useTabs": true,
-	"plugins": ["prettier-plugin-astro", "prettier-plugin-tailwindcss"],
+	"plugins": [
+		"prettier-plugin-astro",
+		"prettier-plugin-tailwindcss",
+		"prettier-plugin-sql"
+	],
 	"overrides": [
 		{
 			"files": "constants.ts",

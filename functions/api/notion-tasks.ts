@@ -1,7 +1,10 @@
 import * as notionApi from '@/functions-helpers/notion-api';
 import { parseRequestCookies } from '@/helpers/parseRequestCookies';
 import { decodeJWTTokens } from '@/helpers/decodeJWTTokens';
-import type { KVDataPartialT, KVDataT } from '@/types';
+import { eq } from 'drizzle-orm';
+import { DELETE_GTOKEN_COOKIE } from '@/constants';
+import { drizzle } from 'drizzle-orm/d1';
+import { users, type UserRawT } from '@/schema';
 
 export interface NPropsMapT {
 	title: { id: string; name: string; type: 'title' };
@@ -18,24 +21,40 @@ export const onRequestGet: PagesFunction<CFEnvT> = async ({ env, request }) => {
 	const { gToken } = await getTokensFromCookie(request, env);
 
 	if (!gToken) {
-		return new Response('Invalid token', { status: 401 });
+		return new Response('Invalid token', {
+			status: 401,
+			headers: [['Set-Cookie', DELETE_GTOKEN_COOKIE]],
+		});
 	}
 
-	const kvData = (await env.NOTION_GTASKS_KV.get<KVDataPartialT>(
-		gToken.user.email,
-		{ type: 'json' },
-	)) as KVDataT;
+	const userEmail = gToken.user.email.toLowerCase();
+	const db = drizzle(env.DB, { logger: true });
+	let userData: UserRawT;
 
-	if (!kvData.databaseId || !kvData.nToken) {
+	try {
+		[userData] = await db
+			.select()
+			.from(users)
+			.where(eq(users.email, userEmail))
+			.limit(1);
+		if (!userData) {
+			throw new Error('User not found');
+		}
+	} catch (error) {
+		return new Response('Error fetching user data', { status: 500 });
+	}
+
+	const { nToken, databaseId } = userData;
+
+	if (!databaseId || !nToken) {
 		return new Response('Notion is not connected or database is not selected', {
 			status: 400,
 		});
 	}
 	const nDBSchema = await notionApi.fetchDatabaseSchema(
-		kvData.databaseId,
-		kvData.nToken.access_token,
+		databaseId,
+		nToken.access_token,
 	);
-	// console.log('ndbScheme', JSON.stringify(ndbScheme, null, 2));
 
 	// TODO: ensure the user's selected database has all the required properties
 	// TODO: ensure Status prop has proper values
@@ -54,15 +73,12 @@ export const onRequestGet: PagesFunction<CFEnvT> = async ({ env, request }) => {
 	} as NPropsMapT;
 
 	const tasks = await notionApi.fetchOpenTasks(
-		kvData.databaseId,
+		databaseId,
 		nPropsMap,
-		kvData.nToken.access_token,
+		nToken.access_token,
 	);
 
-	return new Response(JSON.stringify(tasks), {
-		status: 200,
-		headers: { 'Content-Type': 'application/json' },
-	});
+	return Response.json(tasks);
 };
 
 async function getTokensFromCookie(req: Request, env: CFEnvT) {

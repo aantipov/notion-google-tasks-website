@@ -1,5 +1,5 @@
 import { NOTION_AUTH_URL } from '@/constants';
-import { useDBsMutation, useDBsQuery, useUserQuery } from '@/helpers/api';
+import { useDBsQuery, useUserQuery, useUserMutation } from '@/helpers/api';
 import { useEffect } from 'react';
 import LinkButton from './LinkButton';
 import Warning from './Warning';
@@ -62,15 +62,15 @@ export function Step({
 
 export default function ConnectNotion(props: { hasToken: boolean }) {
 	const userQ = useUserQuery(props.hasToken);
-	const dbsMutationQ = useDBsMutation();
-	const isGoogleSetUp = !userQ.error && !!userQ.data?.tasksListId;
+	const userM = useUserMutation();
+	const isGoogleSetUp = !userQ.error && !!userQ.data?.tasklistId;
 	const isNotionAuthorized = !userQ.error && !!userQ.data?.nConnected;
 	const dbsQ = useDBsQuery(isGoogleSetUp && isNotionAuthorized);
 
 	// TODO: auto select Notion database if only one is connected
 	useEffect(() => {
 		if (dbsQ.data?.length === 1 && dbsQ.data[0].id !== userQ.data?.databaseId) {
-			dbsMutationQ.mutate(dbsQ.data[0].id);
+			userM.mutate({ databaseId: dbsQ.data[0].id });
 		}
 	}, [dbsQ.data]);
 

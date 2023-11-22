@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import {
 	useUserQuery,
-	useTasksListsQuery,
-	useTasksListsMutation,
+	useUserMutation,
+	useTasklistsQuery,
 } from '@/helpers/api';
 import Warning from './Warning';
 import Button from './Button';
@@ -88,9 +88,9 @@ export function Step({
 
 export default function ConnectGoogle(props: { hasToken: boolean }) {
 	const userQ = useUserQuery(props.hasToken);
-	const tasksListsQ = useTasksListsQuery(props.hasToken);
-	const tasksListsM = useTasksListsMutation();
-	const [userSelectedTaskListId, setUserSelectedTaskListId] = useState<
+	const userM = useUserMutation();
+	const tasklistsQ = useTasklistsQuery(props.hasToken);
+	const [userSelectedTasklistId, setUserSelectedTasklistId] = useState<
 		string | null
 	>(null);
 	const [userWantChangeTasklist, setUserWantChangeTasklist] =
@@ -98,16 +98,16 @@ export default function ConnectGoogle(props: { hasToken: boolean }) {
 
 	// Save tasklist if there is only one
 	useEffect(() => {
-		if (tasksListsQ.data?.length === 1) {
+		if (tasklistsQ.data?.length === 1) {
 			// @ts-ignore
-			tasksListsM.mutate(tasksListsQ.data[0].id);
+			userM.mutate(tasklistsQ.data[0].id);
 		}
-	}, [tasksListsQ.data]);
+	}, [tasklistsQ.data]);
 
 	const selectedTaskList = (() => {
-		if (!userQ.error && userQ.data?.tasksListId && tasksListsQ.data) {
-			return tasksListsQ.data.find(
-				(taskList) => taskList.id === userQ.data.tasksListId,
+		if (!userQ.error && userQ.data?.tasklistId && tasklistsQ.data) {
+			return tasklistsQ.data.find(
+				(taskList) => taskList.id === userQ.data.tasklistId,
 			);
 		}
 		return null;
@@ -117,7 +117,7 @@ export default function ConnectGoogle(props: { hasToken: boolean }) {
 		return <Step state="ready-to-connect" />;
 	}
 
-	if (userQ.isLoading || tasksListsQ.isLoading) {
+	if (userQ.isLoading || tasklistsQ.isLoading) {
 		return <Step state="not-connected" />;
 	}
 
@@ -146,35 +146,32 @@ export default function ConnectGoogle(props: { hasToken: boolean }) {
 		);
 	}
 
-	if (
-		!userQ.error &&
-		userQ.data &&
-		!userQ.data.tasksListId &&
-		tasksListsQ.data
-	) {
+	if (!userQ.error && userQ.data && !userQ.data.tasklistId && tasklistsQ.data) {
 		return (
 			<Step state="in-progress">
 				<div className="my-2">
 					<Warning>
-						Multiple taskslists found. Choose the one you want to sync with
+						Multiple tasklists found. Choose the one you want to sync with
 						Notion
 					</Warning>
 				</div>
 
 				<div className="my-4">
-					{tasksListsQ.data.map((gTaskList) => (
+					{tasklistsQ.data.map((gTaskList) => (
 						<TaskListOption
 							key={gTaskList.id}
 							id={gTaskList.id}
 							title={gTaskList.title}
-							selected={userSelectedTaskListId === gTaskList.id}
-							onSelect={() => setUserSelectedTaskListId(gTaskList.id)}
+							selected={userSelectedTasklistId === gTaskList.id}
+							onSelect={() => setUserSelectedTasklistId(gTaskList.id)}
 						/>
 					))}
 				</div>
 
-				{userSelectedTaskListId && (
-					<Button onClick={() => tasksListsM.mutate(userSelectedTaskListId)}>
+				{userSelectedTasklistId && (
+					<Button
+						onClick={() => userM.mutate({ tasklistId: userSelectedTasklistId })}
+					>
 						Save selection
 					</Button>
 				)}
@@ -193,7 +190,7 @@ export default function ConnectGoogle(props: { hasToken: boolean }) {
 						<button
 							className="ml-2 rounded border border-gray-400 bg-gray-100 px-3 py-1 text-base font-semibold text-gray-700 shadow hover:bg-gray-200"
 							onClick={() => {
-								setUserSelectedTaskListId(selectedTaskList.id);
+								setUserSelectedTasklistId(selectedTaskList.id);
 								setUserWantChangeTasklist(true);
 							}}
 						>
@@ -209,18 +206,18 @@ export default function ConnectGoogle(props: { hasToken: boolean }) {
 		!userQ.error &&
 		selectedTaskList &&
 		userWantChangeTasklist &&
-		tasksListsQ.data
+		tasklistsQ.data
 	) {
 		return (
 			<Step state="in-progress">
 				<div className="my-1">
-					{tasksListsQ.data.map((gTaskList) => (
+					{tasklistsQ.data.map((gTaskList) => (
 						<TaskListOption
 							key={gTaskList.id}
 							id={gTaskList.id}
 							title={gTaskList.title}
-							selected={userSelectedTaskListId === gTaskList.id}
-							onSelect={() => setUserSelectedTaskListId(gTaskList.id)}
+							selected={userSelectedTasklistId === gTaskList.id}
+							onSelect={() => setUserSelectedTasklistId(gTaskList.id)}
 						/>
 					))}
 				</div>
@@ -234,10 +231,10 @@ export default function ConnectGoogle(props: { hasToken: boolean }) {
 					Cancel
 				</button>
 
-				{userSelectedTaskListId && (
+				{userSelectedTasklistId && (
 					<button
 						onClick={() => {
-							tasksListsM.mutate(userSelectedTaskListId);
+							userM.mutate({ tasklistId: userSelectedTasklistId });
 							setUserWantChangeTasklist(false);
 						}}
 						className="ml-2 mt-1 rounded border border-transparent bg-blue-500 px-4 py-2 font-semibold text-white hover:bg-blue-700"

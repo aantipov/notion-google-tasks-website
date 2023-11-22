@@ -1,14 +1,13 @@
 import * as notionApi from '@/functions-helpers/notion-api';
 import { parseRequestCookies } from '@/helpers/parseRequestCookies';
 import { decodeJWTTokens } from '@/helpers/decodeJWTTokens';
-import type { KVDataPartialT, KVDataT } from '@/types';
-import { DELETE_GTOKEN_COOKIE, DELETE_NTOKEN_COOKIE } from '@/constants';
+import { DELETE_GTOKEN_COOKIE } from '@/constants';
+import { drizzle } from 'drizzle-orm/d1';
+import { users, type UserRawT } from '@/schema';
+import { eq } from 'drizzle-orm';
 
-interface BodyT {
-	id: string;
-}
 /**
- * Get user notion's dabaseses list
+ * Get user notion's databases list
  */
 export const onRequestGet: PagesFunction<CFEnvT> = async ({ env, request }) => {
 	const { gToken } = await getTokensFromCookie(request, env);
@@ -16,73 +15,33 @@ export const onRequestGet: PagesFunction<CFEnvT> = async ({ env, request }) => {
 	if (!gToken) {
 		return new Response('Invalid token', {
 			status: 401,
-			headers: [
-				['Set-Cookie', DELETE_GTOKEN_COOKIE],
-				['Set-Cookie', DELETE_NTOKEN_COOKIE],
-			],
+			headers: [['Set-Cookie', DELETE_GTOKEN_COOKIE]],
 		});
 	}
 
-	let kvData = await env.NOTION_GTASKS_KV.get<KVDataT>(gToken.user.email, {
-		type: 'json',
-	});
+	const userEmail = gToken.user.email.toLowerCase();
+	const db = drizzle(env.DB, { logger: true });
+	let userData: UserRawT;
 
-	if (!kvData || !kvData.nToken) {
+	try {
+		[userData] = await db
+			.select()
+			.from(users)
+			.where(eq(users.email, userEmail))
+			.limit(1);
+	} catch (error) {
+		return new Response('Error fetching user data', { status: 500 });
+	}
+
+	if (!userData?.nToken) {
 		return new Response('Notion is not connected', { status: 400 });
 	}
 
-	const databases = await notionApi.fetchDatabases(kvData.nToken.access_token);
+	const databases = await notionApi.fetchDatabases(
+		userData.nToken.access_token,
+	);
 
 	return new Response(JSON.stringify(databases), {
-		status: 200,
-		headers: { 'Content-Type': 'application/json' },
-	});
-};
-
-/**
- * Store user-selected database id in KV
- */
-export const onRequestPost: PagesFunction<CFEnvT> = async ({
-	env,
-	request,
-	params,
-}) => {
-	const { gToken } = await getTokensFromCookie(request, env);
-	const requestBody = (await request.json()) as BodyT;
-	const databaseId = requestBody.id;
-
-	if (!gToken) {
-		return new Response('Invalid token', {
-			status: 401,
-			headers: [
-				['Set-Cookie', DELETE_GTOKEN_COOKIE],
-				['Set-Cookie', DELETE_NTOKEN_COOKIE],
-			],
-		});
-	}
-
-	if (!databaseId) {
-		return new Response('Invalid request', { status: 400 });
-	}
-
-	const email = gToken.user.email;
-
-	const kvData = (await env.NOTION_GTASKS_KV.get<KVDataPartialT>(email, {
-		type: 'json',
-	})) as KVDataT;
-
-	const kvDataUpdated = {
-		...kvData,
-		databaseId,
-		modified: new Date().toISOString(),
-	} as KVDataT;
-
-	// TODO: do not log tokens
-	console.log('Updating KV with database id', kvDataUpdated);
-
-	await env.NOTION_GTASKS_KV.put(email, JSON.stringify(kvDataUpdated));
-
-	return new Response(JSON.stringify({ message: 'OK' }), {
 		status: 200,
 		headers: { 'Content-Type': 'application/json' },
 	});

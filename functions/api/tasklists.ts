@@ -1,11 +1,7 @@
 import * as googleApi from '@/functions-helpers/google-api';
 import jwt from '@tsndr/cloudflare-worker-jwt';
-import type { KVDataPartialT, KVDataT } from '@/types';
 import { DELETE_GTOKEN_COOKIE, DELETE_NTOKEN_COOKIE } from '@/constants';
 
-interface BodyT {
-	id: string;
-}
 const TASKS_LISTS_URL =
 	'https://tasks.googleapis.com/tasks/v1/users/@me/lists?maxResults=100';
 
@@ -15,13 +11,7 @@ const TASKS_LISTS_URL =
 export const onRequestGet: PagesFunction<CFEnvT> = async ({ env, request }) => {
 	const gAccessToken = await getGAccessTokenFromCookie(request, env);
 	if (!gAccessToken) {
-		return new Response('Invalid token', {
-			status: 401,
-			headers: [
-				['Set-Cookie', DELETE_GTOKEN_COOKIE],
-				['Set-Cookie', DELETE_NTOKEN_COOKIE],
-			],
-		});
+		return new Response('Invalid token', { status: 401 });
 	}
 
 	const resp = await fetch(TASKS_LISTS_URL, {
@@ -45,52 +35,6 @@ export const onRequestGet: PagesFunction<CFEnvT> = async ({ env, request }) => {
 	}
 
 	return resp;
-};
-
-/**
- * Store user-selected Google tasklist id in KV
- */
-export const onRequestPost: PagesFunction<CFEnvT> = async ({
-	env,
-	request,
-	params,
-}) => {
-	const gAccessToken = await getGAccessTokenFromCookie(request, env);
-	const requestBody = (await request.json()) as BodyT;
-	const tasklistId = requestBody.id;
-
-	if (!tasklistId) {
-		return new Response('Invalid request', { status: 400 });
-	}
-	if (!gAccessToken) {
-		return new Response('Invalid token', {
-			status: 401,
-			headers: [
-				['Set-Cookie', DELETE_GTOKEN_COOKIE],
-				['Set-Cookie', DELETE_NTOKEN_COOKIE],
-			],
-		});
-	}
-
-	const email = gAccessToken.user.email;
-
-	const kvData = (await env.NOTION_GTASKS_KV.get<KVDataPartialT>(email, {
-		type: 'json',
-	})) as KVDataT;
-
-	const kvDataUpdated = {
-		...kvData,
-		tasksListId: tasklistId,
-	} as KVDataT;
-
-	console.log('Updating KV with tasklist id', kvDataUpdated);
-
-	await env.NOTION_GTASKS_KV.put(email, JSON.stringify(kvDataUpdated));
-
-	return new Response(JSON.stringify({ message: 'OK' }), {
-		status: 200,
-		headers: { 'Content-Type': 'application/json' },
-	});
 };
 
 async function getGAccessTokenFromCookie(req: Request, env: CFEnvT) {

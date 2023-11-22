@@ -2,10 +2,10 @@ import type {
 	NDatabasesResponseT,
 	NTaskT,
 } from '@/functions-helpers/notion-api';
-import type { KVDataT } from '@/types';
+import type { UserT } from '@/schema';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
-export interface GTasksListT {
+export interface GTasklistT {
 	id: string;
 	title: string;
 }
@@ -40,7 +40,7 @@ export const useUserQuery = (enabled: boolean = true) =>
 			if (!response.ok) {
 				throw new FetchError(response.status);
 			}
-			const data = (await response.json()) as Partial<KVDataT>;
+			const data = (await response.json()) as UserT;
 			return data;
 		},
 		retry(failureCount, error) {
@@ -53,15 +53,43 @@ export const useUserQuery = (enabled: boolean = true) =>
 		enabled,
 	});
 
-export const useTasksListsQuery = (enabled: boolean = true) =>
+export const useUserMutation = () => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: async ({
+			tasklistId,
+			databaseId,
+		}: {
+			tasklistId?: string;
+			databaseId?: string;
+		}) => {
+			const response = await fetch('/api/user', {
+				method: 'POST',
+				body: JSON.stringify({ tasklistId, databaseId }),
+				headers: { 'Content-Type': 'application/json' },
+			});
+			if (!response.ok) {
+				throw new FetchError(response.status);
+			}
+			const data = (await response.json()) as UserT;
+			return data;
+		},
+		onSuccess: () => {
+			// Invalidate and refetch
+			queryClient.invalidateQueries({ queryKey: ['user'] });
+		},
+	});
+};
+
+export const useTasklistsQuery = (enabled: boolean = true) =>
 	useQuery({
-		queryKey: ['taskslists'],
+		queryKey: ['tasklists'],
 		queryFn: async () => {
 			const response = await fetch('/api/tasklists');
 			if (!response.ok) {
 				throw new FetchError(response.status);
 			}
-			const data = (await response.json()) as { items: GTasksListT[] };
+			const data = (await response.json()) as { items: GTasklistT[] };
 			return data.items;
 		},
 		// @ts-ignore
@@ -75,28 +103,6 @@ export const useTasksListsQuery = (enabled: boolean = true) =>
 		},
 		enabled,
 	});
-
-export const useTasksListsMutation = () => {
-	const queryClient = useQueryClient();
-	return useMutation({
-		mutationFn: async (id: string) => {
-			const response = await fetch('/api/tasklists', {
-				method: 'POST',
-				body: JSON.stringify({ id }),
-				headers: { 'Content-Type': 'application/json' },
-			});
-			if (!response.ok) {
-				throw new FetchError(response.status);
-			}
-			const data = await response.json();
-			return data;
-		},
-		onSuccess: () => {
-			// Invalidate and refetch
-			queryClient.invalidateQueries({ queryKey: ['user'] });
-		},
-	});
-};
 
 export const useDBsQuery = (enabled: boolean = true) =>
 	useQuery({
@@ -119,28 +125,6 @@ export const useDBsQuery = (enabled: boolean = true) =>
 		},
 		enabled,
 	});
-
-export const useDBsMutation = () => {
-	const queryClient = useQueryClient();
-	return useMutation({
-		mutationFn: async (id: string) => {
-			const response = await fetch('/api/databases', {
-				method: 'POST',
-				body: JSON.stringify({ id }),
-				headers: { 'Content-Type': 'application/json' },
-			});
-			if (!response.ok) {
-				throw new FetchError(response.status);
-			}
-			const data = await response.json();
-			return data;
-		},
-		onSuccess: () => {
-			// Invalidate and refetch
-			queryClient.invalidateQueries({ queryKey: ['user'] });
-		},
-	});
-};
 
 export const useSyncMutation = () => {
 	const queryClient = useQueryClient();

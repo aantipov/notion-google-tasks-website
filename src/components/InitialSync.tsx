@@ -62,7 +62,7 @@ export default function InitialSync(props: { hasToken: boolean }) {
 	const syncM = useSyncMutation();
 	const userQ = useUserQuery(props.hasToken);
 	const isReadyToFetchTasks =
-		!userQ.error && !!userQ.data?.databaseId && !!userQ.data?.tasksListId;
+		!userQ.error && !!userQ.data?.databaseId && !!userQ.data?.tasklistId;
 	const gtasksQ = useGTasksQuery(isReadyToFetchTasks);
 	const ntasksQ = useNTasksQuery(isReadyToFetchTasks);
 
@@ -70,7 +70,7 @@ export default function InitialSync(props: { hasToken: boolean }) {
 		!gtasksQ.error && !ntasksQ.error && !!gtasksQ.data && !!ntasksQ.data;
 
 	const syncState = ((): SyncStateT => {
-		if (syncM.status === 'success' || userQ.data?.lastSynced) return 'synced';
+		if (userQ.data?.lastSynced) return 'synced';
 		if (syncM.status === 'pending') return 'syncing';
 		if (syncM.status === 'idle' && readyToSync) return 'ready';
 		return 'not-synced';
@@ -114,7 +114,7 @@ export default function InitialSync(props: { hasToken: boolean }) {
 	}
 
 	// Ready to sync
-	if (userQ.data && userQ.data.tasksListId && userQ.data.databaseId) {
+	if (userQ.data && userQ.data.tasklistId && userQ.data.databaseId) {
 		return (
 			<Step syncState={syncState} onClick={syncHandler}>
 				<div className="mt-2">

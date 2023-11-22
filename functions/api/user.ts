@@ -1,15 +1,20 @@
 import { parseRequestCookies } from '@/helpers/parseRequestCookies';
 import { decodeJWTTokens } from '@/helpers/decodeJWTTokens';
-import type { KVDataT } from '@/types';
 import {
 	DELETE_GTOKEN_COOKIE,
 	DELETE_NTOKEN_COOKIE,
 	GOOGLE_SCOPES_ARRAY,
 } from '@/constants';
 import * as googleApi from '@/functions-helpers/google-api';
+import { drizzle } from 'drizzle-orm/d1';
+import { users, type UserRawT, type UserT } from '@/schema';
+import { eq } from 'drizzle-orm';
 
 /**
- * Get users KV's data
+ * Get user data from DB if it's there & set nToken if it's not set yet
+ * Otherwise create a new user and return it
+ * Delete nToken cookie if it's set
+ * The returned user data is safe to be sent to the client (no sensitive data)
  */
 export const onRequestGet: PagesFunction<CFEnvT> = async ({ env, request }) => {
 	const { gToken, nToken } = await getTokensFromCookie(request, env);
@@ -45,56 +50,114 @@ export const onRequestGet: PagesFunction<CFEnvT> = async ({ env, request }) => {
 			return new Response('Error fetching user info', { status: 500 });
 		}
 	}
-	const userEmail = gToken.user.email;
-	let kvData = await env.NOTION_GTASKS_KV.get<KVDataT>(userEmail, {
-		type: 'json',
-	});
 
-	// Set KV data if it doesn't exist
-	if (!kvData) {
-		kvData = {
-			gToken,
-			...(nToken && { nToken }),
-			created: new Date().toISOString(),
-			modified: new Date().toISOString(),
-		} as KVDataT;
+	const userEmail = gToken.user.email.toLowerCase();
+	const db = drizzle(env.DB, { logger: true });
+	let userData: UserRawT;
 
+	try {
+		[userData] = await db
+			.select()
+			.from(users)
+			.where(eq(users.email, userEmail))
+			.limit(1);
+	} catch (error) {
+		return new Response('Error fetching user data', { status: 500 });
+	}
+
+	// Create a new user if not exists in DB
+	if (!userData) {
 		try {
-			await env.NOTION_GTASKS_KV.put(userEmail, JSON.stringify(kvData));
+			let newUser: UserRawT = {
+				email: userEmail,
+				gToken,
+				created: new Date(),
+				modified: new Date(),
+			};
+			if (nToken) {
+				newUser.nToken = nToken;
+			}
+			// Reassign the newsly created user to userData
+			[userData] = await db.insert(users).values(newUser).returning();
 		} catch (error) {
-			return new Response('Error saving KV data', { status: 500 });
+			return new Response('Error creating new user', { status: 500 });
 		}
 	}
 
-	// Set nToken if it doesn't exist
-	if (nToken && !kvData?.nToken) {
-		kvData.nToken = nToken;
-		kvData.modified = new Date().toISOString();
-		console.log('Updating KV with nToken');
+	// Set nToken if it's not set yet
+	if (!userData.nToken && nToken) {
 		try {
-			await env.NOTION_GTASKS_KV.put(userEmail, JSON.stringify(kvData));
+			console.log('Updating DB with nToken');
+			[userData] = await db
+				.update(users)
+				.set({
+					nToken,
+					modified: new Date(),
+				})
+				.where(eq(users.email, userEmail))
+				.returning();
 		} catch (error) {
-			return new Response('Error updating KV data', { status: 500 });
+			return new Response('Error updating user data', { status: 500 });
 		}
 	}
-
-	const kvDataFiltered: Partial<KVDataT> = {
-		tasksListId: kvData.tasksListId,
-		databaseId: kvData.databaseId,
-		created: kvData.created,
-		modified: kvData.modified,
-		lastSynced: kvData.lastSynced,
-		nConnected: !!kvData.nToken,
-	};
 
 	const headers = new Headers();
 	headers.append('Content-Type', 'application/json');
-	// We should delete the nToken cookie if it exists, because we store it in KV and gToken should be a single source of truth
+	// We should delete the nToken cookie if it exists, because we store it in DB and gToken should be a single source of truth
 	if (nToken) {
 		headers.append('Set-Cookie', DELETE_NTOKEN_COOKIE);
 	}
 
-	return new Response(JSON.stringify(kvDataFiltered), { status: 200, headers });
+	return new Response(JSON.stringify(getSafeUserData(userData)), {
+		status: 200,
+		headers,
+	});
+};
+
+/**
+ * Store user-selected Google tasklist id in DB
+ */
+export const onRequestPost: PagesFunction<CFEnvT> = async ({
+	env,
+	request,
+}) => {
+	const { gToken } = await getTokensFromCookie(request, env);
+
+	if (!gToken) {
+		return new Response('Invalid token', {
+			status: 401,
+			headers: [['Set-Cookie', DELETE_GTOKEN_COOKIE]],
+		});
+	}
+
+	const { tasklistId, databaseId } = (await request.json()) as {
+		tasklistId?: string;
+		databaseId?: string;
+	};
+
+	if (!tasklistId && !databaseId) {
+		return new Response('Invalid request', { status: 400 });
+	}
+
+	const email = gToken.user.email;
+	const db = drizzle(env.DB, { logger: true });
+	let userData: UserRawT;
+
+	try {
+		[userData] = await db
+			.update(users)
+			.set({
+				...(!!tasklistId && { tasklistId }),
+				...(!!databaseId && { databaseId }),
+				modified: new Date(),
+			})
+			.where(eq(users.email, email))
+			.returning();
+	} catch (error) {
+		return new Response('Error updating user data', { status: 500 });
+	}
+
+	return Response.json(getSafeUserData(userData));
 };
 
 async function getTokensFromCookie(req: Request, env: CFEnvT) {
@@ -105,4 +168,9 @@ async function getTokensFromCookie(req: Request, env: CFEnvT) {
 function validateScopes(userScopes: string[]): boolean {
 	const requiredScopes = GOOGLE_SCOPES_ARRAY;
 	return requiredScopes.every((scope) => userScopes.includes(scope));
+}
+
+function getSafeUserData(user: UserRawT): UserT {
+	const { gToken: _, nToken: __, mapping: ___, ...safeUserData } = user;
+	return { ...safeUserData, nConnected: !!user.nToken };
 }
