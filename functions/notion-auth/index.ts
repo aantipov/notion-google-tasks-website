@@ -1,16 +1,12 @@
-import { GOOGLE_AUTH_URI, GOOGLE_SCOPES } from '@/constants';
+import { NOTION_AUTH_URI } from '@/constants';
 
 export const onRequestGet: PagesFunction<CFEnvT> = ({ env }) => {
-	// Check for jwt token in cookie
-	// Redirect user to Google Auth server to provide consent and get token
-	const googleAuthUrl = new URL(GOOGLE_AUTH_URI);
-	googleAuthUrl.searchParams.set('scope', GOOGLE_SCOPES);
-	googleAuthUrl.searchParams.set('response_type', 'code');
-	googleAuthUrl.searchParams.set('client_id', env.GOOGLE_CLIENT_ID);
-	googleAuthUrl.searchParams.set('redirect_uri', env.GOOGLE_REDIRECT_URI);
-	googleAuthUrl.searchParams.set('access_type', 'offline'); // to get refresh token
-	googleAuthUrl.searchParams.set('prompt', 'consent'); // TODO: check if this is needed. https://developers.google.com/identity/protocols/oauth2/web-server#incrementalAuth
-	// TODO: consider using state param to prevent CSRF: https://developers.google.com/identity/protocols/oauth2/web-server#httprest_1
+	// Redirect user to Notion Auth server to provide consent and get token
+	const notionAuthUrl = new URL(NOTION_AUTH_URI);
+	notionAuthUrl.searchParams.set('response_type', 'code');
+	notionAuthUrl.searchParams.set('owner', 'user');
+	notionAuthUrl.searchParams.set('client_id', env.NOTION_CLIENT_ID);
+	notionAuthUrl.searchParams.set('redirect_uri', env.NOTION_REDIRECT_URI);
 
-	return Response.redirect(googleAuthUrl.toString(), 302);
+	return Response.redirect(notionAuthUrl.toString(), 302);
 };

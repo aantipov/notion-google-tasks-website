@@ -1,4 +1,3 @@
-import { NOTION_AUTH_URL } from '@/constants';
 import { useDBsQuery, useUserQuery, useUserMutation } from '@/helpers/api';
 import { useEffect } from 'react';
 import LinkButton from './LinkButton';
@@ -26,7 +25,7 @@ export function Step({
 		return (
 			<a
 				className="flex w-full cursor-pointer items-center rounded bg-blue-500 p-5 text-2xl font-semibold text-white shadow-md hover:bg-blue-700"
-				href={NOTION_AUTH_URL}
+				href="/notion-auth"
 			>
 				<span className="text-2xl">
 					Step 2.
@@ -102,7 +101,7 @@ export default function ConnectNotion(props: { hasToken: boolean }) {
 
 						{!userQ.data.lastSynced && (
 							<a
-								href={NOTION_AUTH_URL}
+								href={'/notion-auth'}
 								className="ml-2 rounded border border-gray-400 bg-gray-100 px-3 py-1 text-base font-semibold text-gray-700 shadow hover:bg-gray-200"
 							>
 								Edit
@@ -142,9 +141,7 @@ export default function ConnectNotion(props: { hasToken: boolean }) {
 					)}
 				</Warning>
 				<div className="mt-3">
-					<LinkButton href={NOTION_AUTH_URL}>
-						Amend Notion Connection
-					</LinkButton>
+					<LinkButton href="/notion-auth">Amend Notion Connection</LinkButton>
 				</div>
 			</div>
 		</Step>
