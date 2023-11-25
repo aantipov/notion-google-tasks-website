@@ -11,7 +11,7 @@ type NTokenT = ReturnType<typeof notionApi.fetchToken> extends Promise<infer T>
 
 type gTaskId = string;
 type nTaskId = string;
-type completedAt = string; // ISO date string '2023-10-25'
+type completedAt = string | null; // ISO date string '2023-10-25'
 
 export const users = sqliteTable('users', {
 	email: text('email').primaryKey(),
@@ -22,7 +22,7 @@ export const users = sqliteTable('users', {
 	mapping: text('mapping', { mode: 'json' }).$type<
 		[gTaskId, nTaskId, completedAt?][]
 	>(),
-	lastSynced: integer('last_synced', { mode: 'timestamp' }),
+	lastSynced: integer('last_synced', { mode: 'timestamp' }), // Important to recognize that sync was established successfully
 	created: integer('created', { mode: 'timestamp' }).notNull(),
 	modified: integer('modified', { mode: 'timestamp' }).notNull(),
 });

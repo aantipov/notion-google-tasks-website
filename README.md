@@ -1,54 +1,53 @@
-# Astro Starter Kit: Basics
+# Notion-Google Tasks Sync Website
 
-```sh
-npm create astro@latest -- --template basics
+## Overview
+
+Notion-Google Tasks Sync is a seamless service allowing users to synchronize their Notion and Google Tasks effortlessly. This repository contains the code for the front-end website, which facilitates user authorization and initial synchronization setup. Built with the Astro framework and hosted on Cloudflare Pages, the website is the starting point for users to integrate their Notion and Google Tasks.
+
+![Website + Worker diagram](./diagram.png)
+
+## Features
+
+- **App Authorization**: Users grant permission to the app to access their Notion and Google Tasks on their behalf. This is essential for enabling the synchronization between the two services.
+- **Initial Synchronization**: Step-by-step process guiding users through the initial sync of tasks.
+- **Secure & Private**: Utilizes Cloudflare D1 for secure data storage, ensuring user data safety.
+- **Minimalistic Design**: A user-friendly interface for an effortless setup experience.
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js
+- Cloudflare account
+
+### Installation
+
+1. Clone the repository:
+
+```bash
+   git clone https://github.com/aantipov/notion-google-tasks-website.git
 ```
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/withastro/astro/tree/latest/examples/basics)
-[![Open with CodeSandbox](https://assets.codesandbox.io/github/button-edit-lime.svg)](https://codesandbox.io/p/sandbox/github/withastro/astro/tree/latest/examples/basics)
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/withastro/astro?devcontainer_path=.devcontainer/basics/devcontainer.json)
+2. Install dependencies:
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
-
-![just-the-basics](https://github.com/withastro/astro/assets/2244813/a0a5533c-a856-4198-8470-2d67b1d7c554)
-
-## 🚀 Project Structure
-
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
-│   └── favicon.svg
-├── src/
-│   ├── components/
-│   │   └── Card.astro
-│   ├── layouts/
-│   │   └── Layout.astro
-│   └── pages/
-│       └── index.astro
-└── package.json
+```bash
+pnpm install
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+3. Configure environment variables for Cloudflare and API access.
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+### Running Locally
 
-Any static assets, like images, can be placed in the `public/` directory.
+Run the following command to start the development server:
 
-## 🧞 Commands
+```bash
+pnpm run dev
+```
 
-All commands are run from the root of the project, from a terminal:
+## Deployment
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+This project is deployed on Cloudflare Pages. Follow Cloudflare's documentation for deploying Astro projects to set up continuous deployment.
 
-## 👀 Want to learn more?
+## License
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+This project is licensed under the MIT License - see the LICENSE file for details.
