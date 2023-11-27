@@ -128,7 +128,11 @@ export default function ConnectGoogle(props: { hasToken: boolean }) {
 		return <Step state="ready-to-connect" />;
 	}
 
-	if (userQ.isLoading || tasklistsQ.isLoading || userM.isPending) {
+	if (
+		userQ.isLoading ||
+		tasklistsQ.isLoading ||
+		(userM.isPending && !userQ.data?.tasklistId)
+	) {
 		return <Step state="not-connected" isLoading />;
 	}
 
@@ -233,26 +237,29 @@ export default function ConnectGoogle(props: { hasToken: boolean }) {
 					))}
 				</div>
 
-				<button
-					onClick={() => {
-						setUserWantChangeTasklist(false);
-					}}
-					className="mt-1 rounded border border-blue-500 bg-transparent px-4 py-2 font-semibold text-blue-700 hover:border-transparent hover:bg-blue-500 hover:text-white"
-				>
-					Cancel
-				</button>
-
-				{userSelectedTasklistId && (
+				<div className="flex gap-2">
 					<button
 						onClick={() => {
-							userM.mutate({ tasklistId: userSelectedTasklistId });
 							setUserWantChangeTasklist(false);
 						}}
-						className="ml-2 mt-1 rounded border border-transparent bg-blue-500 px-4 py-2 font-semibold text-white hover:bg-blue-700"
+						className="mt-1 rounded border border-blue-500 bg-transparent px-4 py-2 font-semibold text-blue-700 hover:border-transparent hover:bg-blue-500 hover:text-white"
 					>
-						Save selection
+						Cancel
 					</button>
-				)}
+
+					{userSelectedTasklistId && (
+						<Button
+							onClick={async () => {
+								await userM.mutateAsync({ tasklistId: userSelectedTasklistId });
+								setUserWantChangeTasklist(false);
+							}}
+							disabled={userM.isPending}
+							loading={userM.isPending}
+						>
+							Save selection
+						</Button>
+					)}
+				</div>
 			</Step>
 		);
 	}
