@@ -107,12 +107,7 @@ export default function ConnectNotion(props: { hasToken: boolean }) {
 		return null;
 	})();
 
-	if (
-		userQ.isLoading ||
-		dbsQ.isLoading ||
-		dbValidationQ.isLoading ||
-		userM.isPending
-	) {
+	if (dbsQ.isLoading || dbValidationQ.isLoading || userM.isPending) {
 		return <Step state="not-connected" isLoading={true} />;
 	}
 

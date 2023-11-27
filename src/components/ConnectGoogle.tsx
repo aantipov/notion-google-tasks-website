@@ -6,6 +6,7 @@ import {
 } from '@/helpers/api';
 import Warning from './Warning';
 import Button from './Button';
+import { Icon } from '@iconify/react';
 
 interface TaskListOptionProps {
 	id: string;
@@ -36,16 +37,26 @@ export function TaskListOption(props: TaskListOptionProps) {
 
 export function Step({
 	state,
+	isLoading = false,
 	children,
 }: {
 	state: 'not-connected' | 'ready-to-connect' | 'in-progress' | 'connected';
+	isLoading?: boolean;
 	children?: React.ReactNode;
 }) {
 	if (state === 'not-connected') {
 		return (
-			<div className="flex w-full cursor-not-allowed items-center rounded border p-5 text-2xl font-semibold text-gray-400 shadow-md">
-				Step 1.
-				<span className="ml-2">Connect Google Tasks</span>
+			<div className="flex w-full cursor-not-allowed items-center rounded border p-5 shadow-md">
+				<span className="text-2xl font-semibold text-gray-400 ">
+					Step 1.
+					<span className="ml-2">Connect Google Tasks</span>
+				</span>
+				{isLoading && (
+					<Icon
+						icon="line-md:loading-twotone-loop"
+						className="ml-3 text-2xl text-gray-700"
+					/>
+				)}
 			</div>
 		);
 	}
@@ -117,8 +128,8 @@ export default function ConnectGoogle(props: { hasToken: boolean }) {
 		return <Step state="ready-to-connect" />;
 	}
 
-	if (userQ.isLoading || tasklistsQ.isLoading) {
-		return <Step state="not-connected" />;
+	if (userQ.isLoading || tasklistsQ.isLoading || userM.isPending) {
+		return <Step state="not-connected" isLoading />;
 	}
 
 	// @ts-ignore

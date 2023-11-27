@@ -11,6 +11,7 @@
 		"build": "astro check && astro build",
 		"preview": "astro preview",
 		"deploy": "astro build && wrangler pages deploy ./dist",
+		"deploy:prod": "astro build && wrangler pages deploy ./dist --branch=master",
 		"_functions:build": "wrangler pages functions build ./functions",
 		"wrangler": "wrangler",
 		"db": "wrangler d1 execute notion-gtasks --local",
