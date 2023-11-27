@@ -67,10 +67,14 @@ export const onRequestGet: PagesFunction<CFEnvT> = async ({ env, request }) => {
 
 	// Create a new user if not exists in DB
 	if (!userData) {
+		const gTokenWithNoAccessToken = {
+			user: gToken.user,
+			refresh_token: gToken.refresh_token,
+		};
 		try {
 			let newUser: UserRawT = {
 				email: userEmail,
-				gToken,
+				gToken: gTokenWithNoAccessToken as googleApi.GTokenResponseT,
 				created: new Date(),
 				modified: new Date(),
 			};

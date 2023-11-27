@@ -5,6 +5,7 @@ import type * as notionApi from '@/functions-helpers/notion-api';
 type GTokenT = ReturnType<typeof googleApi.fetchToken> extends Promise<infer T>
 	? T
 	: never;
+type GTokenRestrictedT = Pick<GTokenT, 'user' | 'refresh_token'>;
 type NTokenT = ReturnType<typeof notionApi.fetchToken> extends Promise<infer T>
 	? T
 	: never;
@@ -15,7 +16,9 @@ type completedAt = string | null; // ISO date string '2023-10-25'
 
 export const users = sqliteTable('users', {
 	email: text('email').primaryKey(),
-	gToken: text('g_token', { mode: 'json' }).$type<GTokenT>().notNull(),
+	gToken: text('g_token', { mode: 'json' })
+		.$type<GTokenRestrictedT>()
+		.notNull(),
 	nToken: text('n_token', { mode: 'json' }).$type<NTokenT>(),
 	tasklistId: text('tasklist_id'),
 	databaseId: text('database_id'),
