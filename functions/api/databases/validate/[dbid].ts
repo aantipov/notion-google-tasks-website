@@ -7,9 +7,18 @@ import { users, type UserRawT } from '@/schema';
 import { eq } from 'drizzle-orm';
 
 /**
- * Get user notion's databases list
+ * Validate selected Notion database' schema
+ * This function should be invoked at /api/databases/validate/:dbid
  */
-export const onRequestGet: PagesFunction<CFEnvT> = async ({ env, request }) => {
+export const onRequestGet: PagesFunction<CFEnvT> = async ({
+	env,
+	request,
+	params,
+}) => {
+	if (!params.dbid || typeof params.dbid !== 'string') {
+		return new Response('Missing database ID', { status: 400 });
+	}
+	const { dbid } = params;
 	const { gToken } = await getTokensFromCookie(request, env);
 
 	if (!gToken) {
@@ -37,14 +46,17 @@ export const onRequestGet: PagesFunction<CFEnvT> = async ({ env, request }) => {
 		return new Response('Notion is not connected', { status: 400 });
 	}
 
-	const databases = await notionApi.fetchDatabases(
-		userData.nToken.access_token,
-	);
+	let nDBSchema: notionApi.DBSchemaT;
+	try {
+		nDBSchema = await notionApi.fetchDatabaseSchema(
+			dbid,
+			userData.nToken.access_token,
+		);
+	} catch (error) {
+		return new Response('Error fetching database schema', { status: 500 });
+	}
 
-	return new Response(JSON.stringify(databases), {
-		status: 200,
-		headers: { 'Content-Type': 'application/json' },
-	});
+	return Response.json(notionApi.validateDbBSchema(nDBSchema));
 };
 
 async function getTokensFromCookie(req: Request, env: CFEnvT) {

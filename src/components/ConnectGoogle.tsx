@@ -139,7 +139,7 @@ export default function ConnectGoogle(props: { hasToken: boolean }) {
 		return (
 			<div className="w-full">
 				<Step state="ready-to-connect" />
-				<div className="mt-5 text-orange-500">
+				<div className="mt-3 text-orange-500">
 					Your session has expired. Please click "Connect Google Tasks"
 				</div>
 			</div>

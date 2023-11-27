@@ -1,4 +1,4 @@
-export default function Warning({
+export default function ErrorComponent({
 	children,
 	title,
 }: {
@@ -7,7 +7,7 @@ export default function Warning({
 }) {
 	return (
 		<div
-			className="max-w-lg border-l-4 border-yellow-500 bg-yellow-100 p-3 text-base text-yellow-700"
+			className="mx-auto mt-10 max-w-lg border-l-4 border-red-500 bg-red-100 p-6 text-red-700"
 			role="alert"
 		>
 			{title && <h2 className="mb-2 font-bold">{title}</h2>}

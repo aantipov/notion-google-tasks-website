@@ -1,29 +1,39 @@
 import {
+	useDBValidateQuery,
 	useGTasksQuery,
 	useNTasksQuery,
 	useSyncMutation,
 	useUserQuery,
 } from '@/helpers/api';
 import { Icon } from '@iconify/react';
+import Button from './Button';
 
 type SyncStateT = 'not-synced' | 'ready' | 'syncing' | 'synced';
 
 export function Step({
 	syncState: state,
 	onClick = () => {}, // is needed only for the 'ready' state
+	isLoading = false,
 	children,
 }: {
 	syncState: SyncStateT;
 	onClick?: () => void;
+	isLoading?: boolean;
 	children?: React.ReactNode;
 }) {
 	if (state === 'not-synced') {
 		return (
 			<div className="flex w-full cursor-not-allowed items-center rounded border p-5 text-2xl font-semibold text-gray-400 shadow-md">
-				<div className="text-2xl">
+				<span className="text-2xl">
 					Step 3.
 					<span className="ml-2">Perform Initial Sync</span>
-				</div>
+				</span>
+				{isLoading && (
+					<Icon
+						icon="line-md:loading-twotone-loop"
+						className="ml-3 text-2xl text-gray-700"
+					/>
+				)}
 			</div>
 		);
 	}
@@ -36,13 +46,14 @@ export function Step({
 					<span className="ml-2">Initial Syncronization</span>
 				</div>
 				{children}
-				<button
+				<Button
 					disabled={state === 'syncing'}
 					onClick={onClick}
-					className="w-full cursor-pointer rounded border border-transparent bg-blue-500 px-4 py-2 font-semibold text-white hover:bg-blue-700"
+					loading={state === 'syncing'}
+					fullWidth
 				>
-					Synchronize
-				</button>
+					{state === 'syncing' ? 'Syncing...' : 'Synchronize'}
+				</Button>
 			</div>
 		);
 	}
@@ -59,12 +70,20 @@ export function Step({
 }
 
 export default function InitialSync(props: { hasToken: boolean }) {
-	const syncM = useSyncMutation();
 	const userQ = useUserQuery(props.hasToken);
+	const dbValidationQ = useDBValidateQuery(
+		!userQ.isLoading && userQ.data?.databaseId,
+	);
 	const isReadyToFetchTasks =
-		!userQ.error && !!userQ.data?.databaseId && !!userQ.data?.tasklistId;
+		!userQ.error &&
+		!!userQ.data?.databaseId &&
+		!!userQ.data?.tasklistId &&
+		!!dbValidationQ.data?.success;
+	const syncM = useSyncMutation();
 	const gtasksQ = useGTasksQuery(isReadyToFetchTasks);
 	const ntasksQ = useNTasksQuery(isReadyToFetchTasks);
+
+	console.log('dbValidationQ', dbValidationQ.data?.success);
 
 	const readyToSync =
 		!gtasksQ.error && !ntasksQ.error && !!gtasksQ.data && !!ntasksQ.data;
@@ -81,15 +100,15 @@ export default function InitialSync(props: { hasToken: boolean }) {
 		syncM.mutate();
 	};
 
-	if (userQ.isError) {
+	if (userQ.isError || dbValidationQ.isError) {
 		return <Step syncState="not-synced" />;
 	}
 
 	if (gtasksQ.isError || ntasksQ.isError) {
 		return (
 			<div>
-				<Step syncState="not-synced" />;
-				<div className="text-red-600">
+				<Step syncState="not-synced" />
+				<div className="mt-2 text-red-600">
 					Error while loading data. Try to realod the page
 				</div>
 			</div>
@@ -100,13 +119,13 @@ export default function InitialSync(props: { hasToken: boolean }) {
 		return (
 			<div>
 				<Step syncState="not-synced" />
-				<div className="text-red-600">Something wrong happened</div>
+				<div className="text-red-600">Error while syncing data</div>
 			</div>
 		);
 	}
 
 	if (gtasksQ.isLoading || ntasksQ.isLoading) {
-		return <Step syncState="not-synced" />;
+		return <Step syncState="not-synced" isLoading />;
 	}
 
 	if (syncState === 'synced') {

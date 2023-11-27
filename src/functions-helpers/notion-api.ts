@@ -6,16 +6,30 @@ import { Buffer } from 'node:buffer';
 import { Client } from '@notionhq/client';
 import type { GTaskT } from '@/helpers/api';
 import { NOTION_RATE_LIMIT } from '@/constants';
+import { z, type ZodIssue } from 'zod';
+import type { PageObjectResponse } from '@notionhq/client/build/src/api-endpoints';
+
+type PromiseValueType<T> = T extends Promise<infer R> ? R : T;
+export type DBSchemaT = PromiseValueType<
+	ReturnType<typeof fetchDatabaseSchema>
+>;
+
+// Notion Tasks statuses
+const DONE = 'Done' as const;
+const TODO = 'To Do' as const;
+type StatusT = typeof DONE | typeof TODO;
+
+export type SchemaValidationResponseT =
+	| { success: true }
+	| { success: false; issues: ZodIssue[] };
 
 const TOKEN_URL = 'https://api.notion.com/v1/oauth/token';
 
 export interface NTaskT {
 	id: string;
 	title: string;
-	status: 'To Do' | 'Done';
-	due: null | {
-		start: string;
-	};
+	status: StatusT;
+	due: null | { start: string };
 	lastEdited: string; // ISO date string '2023-10-25T11:56:00.000Z'
 	lastEditedByBot: boolean; // true if last edited by bot (Google Tasks Sync Bot)
 }
@@ -51,6 +65,77 @@ export interface NPropsMapT {
 	lastEditedBy: { id: string; name: string; type: 'last_edited_by' };
 }
 
+export type DBSchemaFieldT =
+	| 'title'
+	| 'status'
+	| 'due'
+	| 'lastEdited'
+	| 'lastEditedBy';
+
+export const DbPropsSchema = z.object({
+	title: z.object({
+		id: z.string(),
+		name: z.string(),
+		type: z.literal('title'),
+	}),
+	status: z.object({
+		id: z.string(),
+		name: z.string(),
+		type: z.literal('status'), // TODO: ensure Status prop has proper values
+		status: z.object({
+			options: z
+				.array(
+					z.object({
+						id: z.string(),
+						name: z.string(),
+						color: z.string(),
+					}),
+				)
+				.refine((arr) => arr.some((opt) => opt.name === DONE), {
+					message: 'status_done_or_todo',
+				})
+				.refine((arr) => arr.some((opt) => opt.name === TODO), {
+					message: 'status_done_or_todo',
+				}),
+		}),
+	}),
+	due: z.object({
+		id: z.string(),
+		name: z.string(),
+		type: z.literal('date'),
+	}),
+	lastEdited: z.object({
+		id: z.string(),
+		name: z.string(),
+		type: z.literal('last_edited_time'),
+	}),
+	lastEditedBy: z.object({
+		id: z.string(),
+		name: z.string(),
+		type: z.literal('last_edited_by'),
+	}),
+});
+
+export function validateDbBSchema(
+	dbSchema: DBSchemaT,
+): SchemaValidationResponseT {
+	const props = Object.values(dbSchema.properties);
+
+	const nPropsMap = {
+		title: props.find((p) => p.type === 'title'),
+		status: props.find((p) => p.type === 'status'),
+		due: props.find((p) => p.type === 'date'),
+		lastEdited: props.find((p) => p.type === 'last_edited_time'),
+		lastEditedBy: props.find((p) => p.type === 'last_edited_by'),
+	} as NPropsMapT;
+
+	const parseRes = DbPropsSchema.safeParse(nPropsMap);
+
+	return parseRes.success
+		? { success: true }
+		: { success: false, issues: parseRes.error.issues };
+}
+
 /**
  * Fetch open tasks for initial sync
  */
@@ -70,9 +155,7 @@ export async function fetchOpenTasks(
 		page_size: 100,
 		filter: {
 			property: propsMap.status.name,
-			status: {
-				equals: 'To Do',
-			},
+			status: { equals: TODO },
 		},
 		sorts: [
 			{
@@ -81,37 +164,36 @@ export async function fetchOpenTasks(
 			},
 		],
 	});
-	// response.results.forEach((result) => {
-	// 	// @ts-ignore
-	// 	// if (result.properties.Due.date) {
-	// 	// @ts-ignore
-	// 	console.log('result.properties', JSON.stringify(result.properties, null, 2));
-	// 	// }
-	// });
 
-	const tasks = response.results.map((result) => ({
-		id: result.id,
-		// @ts-ignore
-		title: result.properties[propsMap.title.name].title
-			// @ts-ignore
-			.map((title) => title.plain_text)
-			.join(''),
-		// @ts-ignore
-		status: result.properties[propsMap.status.name].status.name,
-		// @ts-ignore
-		due: result.properties.Due.date,
-		// @ts-ignore
-		lastEdited: result.properties[propsMap.lastEdited.name].last_edited_time,
-		// @ts-ignore
-		lastEditedBy:
-			// @ts-ignore
-			result.properties[propsMap.lastEditedBy.name].last_edited_by.id,
-		// @ts-ignore
-		lastEditedByBot:
-			// @ts-ignore
-			result.properties[propsMap.lastEditedBy.name].last_edited_by.type ===
-			'bot',
-	}));
+	type DBPropT = PageObjectResponse['properties'][string];
+	type ExtractPropType<T, U> = T extends { type: U } ? T : never;
+	type TitlePropT = ExtractPropType<DBPropT, 'title'>;
+	type StatusPropT = ExtractPropType<DBPropT, 'status'>;
+	type DuePropT = ExtractPropType<DBPropT, 'date'>;
+	type LastEditedPropT = ExtractPropType<DBPropT, 'last_edited_time'>;
+	type LastEditedByPropT = ExtractPropType<DBPropT, 'last_edited_by'>;
+
+	const tasks: NTaskT[] = (response.results as PageObjectResponse[]).map(
+		(result) => ({
+			id: result.id,
+			title: (result.properties[propsMap.title.name] as TitlePropT).title // @ts-ignore
+				.map((title) => title.plain_text)
+				.join(''),
+			status: (result.properties[propsMap.status.name] as StatusPropT).status!
+				.name as StatusT,
+			due: (result.properties[propsMap.due.name] as DuePropT).date,
+			lastEdited: (
+				result.properties[propsMap.lastEdited.name] as LastEditedPropT
+			).last_edited_time,
+			lastEditedBy: (
+				result.properties[propsMap.lastEditedBy.name] as LastEditedByPropT
+			).last_edited_by.id,
+			lastEditedByBot:
+				// @ts-ignore
+				result.properties[propsMap.lastEditedBy.name].last_edited_by.type ===
+				'bot',
+		}),
+	);
 
 	return { databaseId, items: tasks };
 }
@@ -162,7 +244,7 @@ async function createTask(
 			[propsMap.title.name]: { title: [{ text: { content: gTask.title } }] },
 			[propsMap.due.name]: { date },
 			[propsMap.status.name]: {
-				status: { name: gTask.status === 'completed' ? 'Done' : 'To Do' },
+				status: { name: gTask.status === 'completed' ? DONE : TODO },
 			},
 		};
 		const response = await notion.pages.create({

@@ -23,22 +23,24 @@ export default function LinkButton({
 	href,
 	disabled = false,
 	loading = false,
+	size = 'normal',
 }: {
 	children: React.ReactNode;
 	href: string;
 	disabled?: boolean;
 	loading?: boolean;
+	size?: 'normal' | 'small';
 }) {
-	// TODO: find out why disabling doesn't work. Link it still clickable
 	const handleClick = (event: any) => {
 		if (disabled) {
 			event.preventDefault();
 		}
 	};
+	const padding = size === 'normal' ? 'py-2 px-4' : 'py-1 px-3';
 	if (disabled) {
 		return (
 			<a
-				className="cursor-not-allowed rounded bg-blue-300 px-4 py-2 font-bold text-white"
+				className={`${padding} cursor-not-allowed rounded bg-blue-300 font-bold text-white`}
 				tabIndex={-1}
 			>
 				{children}
@@ -50,7 +52,7 @@ export default function LinkButton({
 		<a
 			href={href}
 			onClick={(event) => handleClick(event)}
-			className="inline-block cursor-pointer rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
+			className={`${padding} inline-block cursor-pointer rounded bg-blue-500 font-bold text-white hover:bg-blue-700`}
 		>
 			{children}
 			{loading && <SpinnerIcon />}

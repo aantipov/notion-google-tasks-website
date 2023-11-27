@@ -1,6 +1,7 @@
 import type {
 	NDatabasesResponseT,
 	NTaskT,
+	SchemaValidationResponseT,
 } from '@/functions-helpers/notion-api';
 import type { UserT } from '@/schema';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -126,6 +127,27 @@ export const useDBsQuery = (enabled: boolean = true) =>
 		enabled,
 	});
 
+export const useDBValidateQuery = (dbId: string | false | null | undefined) =>
+	useQuery({
+		queryKey: ['database-validate', dbId],
+		queryFn: async () => {
+			const response = await fetch(`/api/databases/validate/${dbId}`);
+			if (!response.ok) {
+				throw new FetchError(response.status);
+			}
+			const data = (await response.json()) as SchemaValidationResponseT;
+			return data;
+		},
+		retry(failureCount, error) {
+			// @ts-ignore
+			if (error?.code === 401 || failureCount > 2) {
+				return false;
+			}
+			return true;
+		},
+		enabled: !!dbId,
+	});
+
 export const useSyncMutation = () => {
 	const queryClient = useQueryClient();
 	return useMutation({
@@ -169,7 +191,7 @@ export const useGTasksQuery = (enabled: boolean = true) =>
 		enabled,
 	});
 
-export const useNTasksQuery = (enabled: boolean = true) =>
+export const useNTasksQuery = (enabled: boolean) =>
 	useQuery({
 		queryKey: ['ntasks'],
 		queryFn: async () => {
