@@ -12,7 +12,16 @@ export const onRequestGet: PagesFunction<CFEnvT> = async ({ request, env }) => {
 	const authError = url.searchParams.get('error');
 
 	if (authError) {
-		// TODO: handle user not provided consent
+		if (authError === 'access_denied') {
+			return new Response(null, {
+				status: 302,
+				statusText: 'Found',
+				headers: {
+					Location: '/?error=gaccess_denied',
+				},
+			});
+		}
+		// TODO: send error to Sentry
 		return new Response(`Error: ${authError}`, { status: 400 });
 	}
 

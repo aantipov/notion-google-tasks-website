@@ -21,14 +21,25 @@ try {
 const isFeatureEnabled =
 	Astro.url.hostname !== 'notion-google-tasks-sync.com' ||
 	Astro.url.searchParams.get('q') === '123';
+const isUserDeniedGAccess =
+	Astro.url.searchParams.get('error') === 'gaccess_denied';
 ---
 
 <Layout>
 	<div
 		class="flex h-12 items-center justify-center bg-red-500 font-bold text-white"
 	>
-		This Website is in development. Release Date: 01.12.2023
+		Almost There! Our service is in the final stages of getting approval from
+		Google. Expected to be available in a few days.
 	</div>
+	{
+		isUserDeniedGAccess && (
+			<div class="flex h-12 items-center justify-center bg-red-500 font-bold text-white">
+				Authorization denied. To use the synchronization service, you need to
+				grant access to your Google Tasks.
+			</div>
+		)
+	}
 	<div class="container mx-auto mt-20 p-8">
 		<Hero />
 	</div>
