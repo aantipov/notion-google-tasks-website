@@ -47,7 +47,7 @@ export function Step({
 	if (state === 'not-connected') {
 		return (
 			<div className="flex w-full cursor-not-allowed items-center rounded border p-5 shadow-md">
-				<span className="text-2xl font-semibold text-gray-400 ">
+				<span className="text-xl font-semibold text-gray-400 sm:text-2xl">
 					Step 1.
 					<span className="ml-2">Connect Google Tasks</span>
 				</span>
@@ -64,10 +64,10 @@ export function Step({
 	if (state === 'ready-to-connect') {
 		return (
 			<a
-				className="flex w-full cursor-pointer items-center rounded bg-blue-500 p-5 text-2xl font-semibold text-white shadow-md hover:bg-blue-700"
+				className="flex w-full cursor-pointer items-center rounded bg-blue-500 p-5 text-xl font-semibold text-white shadow-md hover:bg-blue-700 sm:text-2xl"
 				href={'/google-auth'}
 			>
-				<span className="text-2xl">Step 1.</span>
+				<span className="shrink-0">Step 1.</span>
 				<span className="ml-2">Connect Google Tasks</span>
 			</a>
 		);
@@ -76,7 +76,7 @@ export function Step({
 	if (state === 'connected') {
 		return (
 			<div className="w-full items-center rounded  border p-5 shadow-md">
-				<div className="text-2xl font-semibold text-green-500">
+				<div className="text-xl font-semibold text-green-500 sm:text-2xl">
 					Step 1.
 					<span className="ml-2">Google Tasks connected</span>
 				</div>
@@ -88,7 +88,7 @@ export function Step({
 	// In progress state
 	return (
 		<div className="w-full items-center rounded border border-gray-300 p-5 text-gray-800 shadow-md">
-			<div className="text-2xl font-semibold">
+			<div className="text-xl font-semibold sm:text-2xl">
 				Step 1.
 				<span className="ml-2">Google Tasks connection</span>
 			</div>

@@ -25,29 +25,15 @@ const isUserDeniedGAccess =
 	Astro.url.searchParams.get('error') === 'gaccess_denied';
 ---
 
-<Layout>
-	<div
-		class="flex h-12 items-center justify-center bg-red-500 px-4 font-bold text-white"
-	>
-		Almost There! Our service is in the final stages of getting approval from
-		Google. Expected to be available in a few days.
-	</div>
-	{
-		isUserDeniedGAccess && (
-			<div class="flex h-12 items-center justify-center bg-red-500 px-4 font-bold text-white">
-				Authorization denied. To use the synchronization service, you need to
-				grant access to your Google Tasks.
-			</div>
-		)
-	}
-	<div class="container mx-auto mt-20 p-8">
+<Layout isUserDeniedGAccess={isUserDeniedGAccess}>
+	<div class="mt-20">
 		<Hero />
 	</div>
 
 	<section class="my-32 flex flex-col items-center justify-center">
 		<h1
 			id="start-sync"
-			class="px-8 text-5xl font-bold tracking-wide sm:px-8 sm:text-6xl md:px-20 lg:px-4 lg:text-6xl xl:text-6xl"
+			class="text-5xl font-bold tracking-wide sm:text-6xl md:px-20 lg:text-6xl xl:text-6xl"
 		>
 			Start Syncing
 			<div class="mt-2 text-center text-3xl">in 3 steps</div>

@@ -6,11 +6,11 @@ import HeroImage from './hero.png';
 <div>
 	<section class="flex flex-col items-center justify-center">
 		<h1
-			class="px-8 text-5xl font-bold tracking-wide sm:px-8 sm:text-6xl md:px-20 lg:px-4 lg:text-6xl xl:text-6xl"
+			class="text-center text-5xl font-bold tracking-wide sm:text-6xl lg:px-4 lg:text-6xl xl:text-6xl"
 		>
 			Real-Time Tasks Sync
 		</h1>
-		<div class="mt-3 text-4xl font-bold">Notion & Google Tasks</div>
+		<div class="mt-3 text-3xl font-bold sm:text-4xl">Notion & Google Tasks</div>
 		<div class="my-10 w-[70%]">
 			<Image src={HeroImage} alt="A bird sitting on a nest of eggs." />
 		</div>
@@ -33,11 +33,11 @@ import HeroImage from './hero.png';
 
 	<section class="mt-48 flex flex-col items-center justify-center">
 		<h1
-			class="px-8 text-5xl font-bold tracking-wide sm:px-8 sm:text-6xl md:px-20 lg:px-4 lg:text-6xl xl:text-6xl"
+			class="text-5xl font-bold tracking-wide sm:text-6xl lg:px-4 lg:text-6xl xl:text-6xl"
 		>
 			Features
 		</h1>
-		<div class="mt-8 flex w-full max-w-4xl flex-wrap justify-center gap-4">
+		<div class="mt-8 flex w-full max-w-4xl flex-wrap justify-center gap-6">
 			<div class="card">
 				<div class="card-title">Two-way</div>
 				 Two-way syncronisation
@@ -76,7 +76,7 @@ import HeroImage from './hero.png';
 
 <style>
 	.card {
-		@apply rounded-2xl border-4 border-gray-800  p-3 sm:w-[40%];
+		@apply w-full rounded-2xl border-4 border-gray-800 p-3 sm:w-[40%];
 	}
 	.card-title {
 		@apply text-center text-lg font-bold;

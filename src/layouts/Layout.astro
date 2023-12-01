@@ -2,13 +2,18 @@
 interface Props {
 	title?: string;
 	desc?: string;
+	isUserDeniedGAccess?: boolean;
 }
 
 const defaultTitle =
 	'Notion-Google Tasks: Sync Your To-Dos Effortlessly | Free, Fast, Secure';
 const defaultDescription =
 	'Synchronize your tasks between Notion and Google Tasks instantly and securely. Our two-way sync service ensures your data is always up-to-date and safe. Try it for free today!';
-const { title = defaultTitle, desc = defaultDescription } = Astro.props;
+const {
+	title = defaultTitle,
+	desc = defaultDescription,
+	isUserDeniedGAccess = false,
+} = Astro.props;
 ---
 
 <!doctype html>
@@ -29,17 +34,36 @@ const { title = defaultTitle, desc = defaultDescription } = Astro.props;
 			data-domain="notion-google-tasks-sync.com"
 			src="https://plausible.io/js/script.js"></script>
 	</head>
-	<body class="bg-white text-gray-800">
-		<slot />
+	<body class="bg-white text-lg text-gray-800">
+		<div
+			class="flex items-center justify-center bg-red-500 px-4 py-1 text-base font-semibold text-white"
+		>
+			<div>
+				Almost There! Our service is in the final stages of getting approval
+				from Google. Expected to be available in a few days.
+			</div>
+			{
+				isUserDeniedGAccess && (
+					<div>
+						Authorization denied. To use the synchronization service, you need
+						to grant access to your Google Tasks.
+					</div>
+				)
+			}
+		</div>
+		<div class="container mx-auto p-6">
+			<slot />
+		</div>
+
 		<footer
-			class="flex flex-col items-center justify-center bg-slate-800 py-12 text-white"
+			class="flex flex-col items-center justify-center bg-slate-800 px-4 py-12 text-xl text-white sm:text-lg"
 		>
 			<div>
 				Made by &nbsp;<a href="https://alexei.me" class="underline"
 					>Alexey Antipov</a
 				>
 			</div>
-			<div class="mt-4 flex gap-4 text-lg">
+			<div class="mt-4 flex flex-wrap justify-center gap-x-10 gap-y-4 sm:gap-4">
 				<a href="https://twitter.com/_aantipov" class="flex items-center">
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
@@ -67,8 +91,8 @@ const { title = defaultTitle, desc = defaultDescription } = Astro.props;
 						></path></svg
 					>&nbsp;<span class="hover:underline">Github</span>
 				</a>
-				<a href="/privacy-policy" class="underline">Privacy policy</a>
-				<a href="/terms-of-use" class="underline">Terms of use</a>
+				<a href="/privacy-policy" class="shrink-0 underline">Privacy policy</a>
+				<a href="/terms-of-use" class="shrink-0 underline">Terms of use</a>
 			</div>
 		</footer>
 	</body>

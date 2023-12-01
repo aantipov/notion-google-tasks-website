@@ -24,7 +24,7 @@ export function Step({
 	if (state === 'not-synced') {
 		return (
 			<div className="flex w-full cursor-not-allowed items-center rounded border p-5 text-2xl font-semibold text-gray-400 shadow-md">
-				<span className="text-2xl">
+				<span className="text-xl sm:text-2xl">
 					Step 3.
 					<span className="ml-2">Perform Initial Sync</span>
 				</span>
@@ -41,7 +41,7 @@ export function Step({
 	if (state === 'ready' || state === 'syncing') {
 		return (
 			<div className="w-full items-center rounded-lg border border-gray-200 p-5 text-gray-800 shadow-md">
-				<div className="text-2xl font-semibold">
+				<div className="text-xl sm:text-2xl font-semibold">
 					Step 3.
 					<span className="ml-2">Initial Syncronization</span>
 				</div>

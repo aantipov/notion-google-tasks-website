@@ -12,7 +12,7 @@ export default function Main(props: {
 }) {
 	return (
 		<QueryClientProvider client={queryClient}>
-			<div className="mt-6 w-[80%] max-w-2xl">
+			<div className="mt-6 max-w-2xl sm:w-[80%]">
 				<ConnectGoogle hasToken={props.hasToken} />
 
 				<div className="mt-8">
