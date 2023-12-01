@@ -93,9 +93,7 @@ export default function ConnectNotion(props: { hasToken: boolean }) {
 	// We don't check if it has valid schema at this point.
 	// We validate later - we validate the one that is saved in the user record. For simplicity.
 	useEffect(() => {
-		console.log('Mutate?');
 		if (dbsQ.data?.length === 1 && dbsQ.data[0].id !== userQ.data?.databaseId) {
-			console.log('Mutate!');
 			userM.mutate({ databaseId: dbsQ.data[0].id });
 		}
 	}, [dbsQ.data]);

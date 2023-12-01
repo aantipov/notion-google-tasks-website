@@ -91,7 +91,6 @@ export const onRequestGet: PagesFunction<CFEnvT> = async ({ env, request }) => {
 	// Set nToken if it's not set yet
 	if (!userData.nToken && nToken) {
 		try {
-			console.log('Updating DB with nToken');
 			[userData] = await db
 				.update(users)
 				.set({

@@ -75,9 +75,8 @@ export const useUserMutation = () => {
 			const data = (await response.json()) as UserT;
 			return data;
 		},
-		onSuccess: () => {
-			// Invalidate and refetch
-			queryClient.invalidateQueries({ queryKey: ['user'] });
+		onSuccess: (data) => {
+			queryClient.setQueryData(['user'], data);
 		},
 	});
 };

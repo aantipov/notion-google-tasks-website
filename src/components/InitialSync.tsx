@@ -83,8 +83,6 @@ export default function InitialSync(props: { hasToken: boolean }) {
 	const gtasksQ = useGTasksQuery(isReadyToFetchTasks);
 	const ntasksQ = useNTasksQuery(isReadyToFetchTasks);
 
-	console.log('dbValidationQ', dbValidationQ.data?.success);
-
 	const readyToSync =
 		!gtasksQ.error && !ntasksQ.error && !!gtasksQ.data && !!ntasksQ.data;
 

@@ -128,11 +128,7 @@ export default function ConnectGoogle(props: { hasToken: boolean }) {
 		return <Step state="ready-to-connect" />;
 	}
 
-	if (
-		userQ.isLoading ||
-		tasklistsQ.isLoading ||
-		(userM.isPending && !userQ.data?.tasklistId)
-	) {
+	if (userQ.isLoading || tasklistsQ.isLoading) {
 		return <Step state="not-connected" isLoading />;
 	}
 
@@ -141,9 +137,9 @@ export default function ConnectGoogle(props: { hasToken: boolean }) {
 		return (
 			<div className="w-full">
 				<Step state="ready-to-connect" />
-				<div className="mt-5 text-orange-500">
-					Not Enough Permissions. We need to access your Google Tasks. Please
-					click "Connect Google Tasks" and give us access.
+				<div className="mt-1 text-orange-500">
+					Oops! Required permissions are missing. Please click 'Connect Google
+					Tasks' to grant full access for proper functionality.
 				</div>
 			</div>
 		);
@@ -154,13 +150,14 @@ export default function ConnectGoogle(props: { hasToken: boolean }) {
 		return (
 			<div className="w-full">
 				<Step state="ready-to-connect" />
-				<div className="mt-3 text-orange-500">
+				<div className="mt-1 text-orange-500">
 					Your session has expired. Please click "Connect Google Tasks"
 				</div>
 			</div>
 		);
 	}
 
+	// First time select task list case
 	if (!userQ.error && userQ.data && !userQ.data.tasklistId && tasklistsQ.data) {
 		return (
 			<Step state="in-progress">
@@ -186,6 +183,8 @@ export default function ConnectGoogle(props: { hasToken: boolean }) {
 				{userSelectedTasklistId && (
 					<Button
 						onClick={() => userM.mutate({ tasklistId: userSelectedTasklistId })}
+						loading={userM.isPending}
+						disabled={userM.isPending}
 					>
 						Save selection
 					</Button>
@@ -194,6 +193,7 @@ export default function ConnectGoogle(props: { hasToken: boolean }) {
 		);
 	}
 
+	// Everthing is set up. Show "Edit" button
 	if (!userQ.error && selectedTaskList && !userWantChangeTasklist) {
 		return (
 			<Step state="connected">
@@ -217,6 +217,7 @@ export default function ConnectGoogle(props: { hasToken: boolean }) {
 		);
 	}
 
+	// Change selected tasklist
 	if (
 		!userQ.error &&
 		selectedTaskList &&

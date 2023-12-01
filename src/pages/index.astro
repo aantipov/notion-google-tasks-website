@@ -27,14 +27,14 @@ const isUserDeniedGAccess =
 
 <Layout>
 	<div
-		class="flex h-12 items-center justify-center bg-red-500 font-bold text-white"
+		class="flex h-12 items-center justify-center bg-red-500 px-4 font-bold text-white"
 	>
 		Almost There! Our service is in the final stages of getting approval from
 		Google. Expected to be available in a few days.
 	</div>
 	{
 		isUserDeniedGAccess && (
-			<div class="flex h-12 items-center justify-center bg-red-500 font-bold text-white">
+			<div class="flex h-12 items-center justify-center bg-red-500 px-4 font-bold text-white">
 				Authorization denied. To use the synchronization service, you need to
 				grant access to your Google Tasks.
 			</div>
