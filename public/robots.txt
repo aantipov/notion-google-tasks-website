@@ -1,2 +1,4 @@
 User-agent: *
 Disallow: /api/
+Disallow: /google-auth
+Disallow: /notion-auth
