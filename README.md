@@ -2,7 +2,7 @@
 
 ## Overview
 
-Notion-Google Tasks Sync is a seamless service allowing users to synchronize their Notion and Google Tasks effortlessly. This repository contains the code for the [front-end website](https://notion-google-tasks-sync.com/), which facilitates user authorization and initial synchronization setup. Built with the Astro framework and hosted on Cloudflare Pages, the website is the starting point for users to integrate their Notion and Google Tasks.
+Notion-Google Tasks Sync is a seamless service allowing users to synchronize their Notion and Google Tasks effortlessly. This repository contains the code for the [front-end website](https://notion-google-tasks-sync.com), which facilitates user authorization and initial synchronization setup. Built with the Astro framework and hosted on Cloudflare Pages, the website is the starting point for users to integrate their Notion and Google Tasks.
 
 [aantipov/notion-google-tasks-worker](https://github.com/aantipov/notion-google-tasks-worker) is a companion repository for the cron job to sync tasks regularly in the background.
 
