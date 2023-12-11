@@ -1,6 +1,8 @@
 ---
 import { Image } from 'astro:assets';
 import HeroImage from './hero.png';
+import LogoImage from '@/images/logo.png';
+const serviceName = 'Notion-Google Tasks Sync Service';
 ---
 
 <div>
@@ -8,19 +10,26 @@ import HeroImage from './hero.png';
 		<h1
 			class="text-center text-5xl font-bold tracking-wide sm:text-6xl lg:px-4 lg:text-6xl xl:text-6xl"
 		>
-			Real-Time Tasks Sync
+			Sync Tasks Real-Time
 		</h1>
 		<div class="mt-3 text-3xl font-bold sm:text-4xl">Notion & Google Tasks</div>
 		<div class="my-10 w-[70%]">
 			<Image src={HeroImage} alt="A bird sitting on a nest of eggs." />
 		</div>
-		<p class="max-w-xl md:w-2/3">
-			Synchronize your Notion and Google Tasks seamlessly and instantly.
-			Experience the convenience of <span class="font-bold">two-way</span>,
-			<span class="font-bold">real-time</span> syncing at <span
-				class="font-bold">no cost</span
-			>.
-		</p>
+		<div class="max-w-xl text-center md:w-2/3">
+			<p>
+				Bridge your Notion and Google Tasks with our <br />
+				<Image src={LogoImage} class="inline-block" height="40" alt="smth" />
+				<span class="font-medium">{serviceName}</span>.
+			</p>
+
+			<p>
+				Experience the convenience of <span class="font-bold">two-way</span>,
+				<span class="font-bold">real-time</span> syncing at <span
+					class="font-bold">no cost</span
+				>.
+			</p>
+		</div>
 
 		<div class="mt-10">
 			<a
