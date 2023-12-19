@@ -20,7 +20,7 @@ const {
 } = Astro.props;
 const today = new Date();
 const imageUrl = new URL(LogoImage.src, Astro.url.origin);
-// const canonicalURL = Astro.site;
+const canonicalURL = Astro.site;
 ---
 
 <!doctype html>
@@ -38,11 +38,17 @@ const imageUrl = new URL(LogoImage.src, Astro.url.origin);
 		<meta name="description" content={desc} />
 
 		<!-- Open Graph / Facebook -->
-		<!-- <meta property="og:type" content="website" />
+		<meta property="og:type" content="website" />
 		<meta property="og:url" content={canonicalURL} />
-		<meta property="og:title" content={ogTitle} />
-		<meta property="og:description" content={ogDesc} />
-		<meta property="og:image" content={imageUrl} /> -->
+		<meta
+			property="og:title"
+			content="Seamless Two-way Task Syncing: Notion & Google Tasks United"
+		/>
+		<meta
+			property="og:description"
+			content="Experience effortless two-way syncing between Notion and Google Tasks. Keep your tasks updated in real-time at zero cost. Start simplifying your to-do management today!"
+		/>
+		<meta property="og:image" content={imageUrl} />
 
 		<!-- Twitter -->
 		<meta name="twitter:creator" content="@_aantipov" />
