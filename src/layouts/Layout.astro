@@ -21,6 +21,9 @@ const {
 const today = new Date();
 const imageUrl = new URL(LogoImage.src, Astro.url.origin);
 const canonicalURL = Astro.site;
+const ogTitle = 'Sync Notion & Google Tasks for Free!';
+const ogDesc =
+	'Real-time, two-way syncing for free. Simplify task management across platforms effortlessly';
 ---
 
 <!doctype html>
@@ -40,27 +43,15 @@ const canonicalURL = Astro.site;
 		<!-- Open Graph / Facebook -->
 		<meta property="og:type" content="website" />
 		<meta property="og:url" content={canonicalURL} />
-		<meta
-			property="og:title"
-			content="Seamless Two-way Task Syncing: Notion & Google Tasks United"
-		/>
-		<meta
-			property="og:description"
-			content="Experience effortless two-way syncing between Notion and Google Tasks. Keep your tasks updated in real-time at zero cost. Start simplifying your to-do management today!"
-		/>
+		<meta property="og:title" content={ogTitle} />
+		<meta property="og:description" content={ogDesc} />
 		<meta property="og:image" content={imageUrl} />
 
 		<!-- Twitter -->
 		<meta name="twitter:creator" content="@_aantipov" />
 		<meta property="twitter:card" content="summary" />
-		<meta
-			property="twitter:title"
-			content="Seamless Two-way Task Syncing: Notion & Google Tasks United"
-		/>
-		<meta
-			property="twitter:description"
-			content="Experience effortless two-way syncing between Notion and Google Tasks. Keep your tasks updated in real-time at zero cost. Start simplifying your to-do management today!"
-		/>
+		<meta property="twitter:title" content={ogTitle} />
+		<meta property="twitter:description" content={ogDesc} />
 		<meta property="twitter:image" content={imageUrl} />
 
 		<!-- Favicon -->
