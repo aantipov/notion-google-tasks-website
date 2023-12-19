@@ -19,6 +19,7 @@ const {
 	isUserDeniedGAccess = false,
 } = Astro.props;
 const today = new Date();
+const imageUrl = new URL(LogoImage.src, Astro.url.origin);
 // const canonicalURL = Astro.site;
 ---
 
@@ -54,7 +55,7 @@ const today = new Date();
 			property="twitter:description"
 			content="Experience effortless two-way syncing between Notion and Google Tasks. Keep your tasks updated in real-time at zero cost. Start simplifying your to-do management today!"
 		/>
-		<meta property="twitter:image" content={LogoImage.src} />
+		<meta property="twitter:image" content={imageUrl} />
 
 		<!-- Favicon -->
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
