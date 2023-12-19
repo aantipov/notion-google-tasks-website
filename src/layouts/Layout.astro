@@ -18,21 +18,52 @@ const {
 	desc = defaultDescription,
 	isUserDeniedGAccess = false,
 } = Astro.props;
+const today = new Date();
+// const canonicalURL = Astro.site;
 ---
 
 <!doctype html>
 <html lang="en">
 	<head>
 		<meta charset="UTF-8" />
-		<meta name="description" content={desc} />
 		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<meta name="generator" content={Astro.generator} />
+		<meta
+			name="copyright"
+			content={`2023-${today.getFullYear()}, Alexey Antipov`}
+		/>
+
 		<title>{title}</title>
+		<meta name="description" content={desc} />
+
+		<!-- Open Graph / Facebook -->
+		<!-- <meta property="og:type" content="website" />
+		<meta property="og:url" content={canonicalURL} />
+		<meta property="og:title" content={ogTitle} />
+		<meta property="og:description" content={ogDesc} />
+		<meta property="og:image" content={imageUrl} /> -->
+
+		<!-- Twitter -->
+		<meta name="twitter:creator" content="@_aantipov" />
+		<meta property="twitter:card" content="summary_large_image" />
+		<meta
+			property="twitter:title"
+			content="Seamless Two-way Task Syncing: Notion & Google Tasks United"
+		/>
+		<meta
+			property="twitter:description"
+			content="Experience effortless two-way syncing between Notion and Google Tasks. Keep your tasks updated in real-time at zero cost. Start simplifying your to-do management today!"
+		/>
+		<meta property="twitter:image" content={LogoImage.src} />
+
+		<!-- Favicon -->
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
 		<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
 		<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
 		<link rel="manifest" href="/site.webmanifest" />
+
+		<!-- Analytics -->
 		<script
 			defer
 			data-domain="notion-google-tasks-sync.com"
