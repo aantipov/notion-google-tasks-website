@@ -26,9 +26,7 @@ const isUserDeniedGAccess =
 ---
 
 <Layout isUserDeniedGAccess={isUserDeniedGAccess}>
-	<div class="mt-20">
-		<Hero />
-	</div>
+	<Hero />
 
 	<section class="my-32 flex flex-col items-center justify-center">
 		<h1
@@ -57,9 +55,12 @@ const isUserDeniedGAccess =
 					Only tasks' title, due date and status properties are synced. Tasks
 					descriptions are not synced.
 				</li>
-				<li>Tasks hierarchy is not respected</li>
-				<li>No support for multiple google tasklists</li>
-				<li>Time is not supported bcz Google Tasks API doesn't support time</li>
+				<li>Tasks hierarchy is not respected.</li>
+				<li>No support for multiple google tasklists and notion databases.</li>
+				<li>
+					Syncronisaion of tasks' time is unfortunately not supported because of
+					the limitation of Google Tasks API.
+				</li>
 			</ul>
 		</div>
 	</section>

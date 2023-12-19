@@ -1,4 +1,8 @@
 ---
+import { Image } from 'astro:assets';
+import LogoImage from '@/images/logo.png';
+const serviceName = 'Notion-Google Tasks Sync';
+
 interface Props {
 	title?: string;
 	desc?: string;
@@ -35,21 +39,21 @@ const {
 			src="https://plausible.io/js/script.js"></script>
 	</head>
 	<body class="bg-white text-lg text-gray-800">
-		<div
-			class="flex items-center justify-center bg-red-500 px-4 py-1 text-base font-semibold text-white"
-		>
-			<div>
-				Almost There! Our service is in the final stages of getting approval
-				from Google. Expected to be available in a few days.
-			</div>
-			{
-				isUserDeniedGAccess && (
+		{
+			isUserDeniedGAccess && (
+				<div class="flex items-center justify-center bg-red-500 px-4 py-1 text-base font-semibold text-white">
 					<div>
 						Authorization denied. To use the synchronization service, you need
 						to grant access to your Google Tasks.
 					</div>
-				)
-			}
+				</div>
+			)
+		}
+		<div class="m-2">
+			<a href="/">
+				<Image src={LogoImage} class="inline-block" height="40" alt="smth" />
+				<span class="font-medium">{serviceName}</span>
+			</a>
 		</div>
 		<div class="container mx-auto p-6">
 			<slot />

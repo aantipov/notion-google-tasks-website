@@ -3,9 +3,10 @@ import { Image } from 'astro:assets';
 import HeroImage from './hero.png';
 import LogoImage from '@/images/logo.png';
 const serviceName = 'Notion-Google Tasks Sync Service';
+const syncTime = '5 minutes';
 ---
 
-<div>
+<div class="mt-24 sm:mt-0">
 	<section class="flex flex-col items-center justify-center">
 		<h1
 			class="text-center text-5xl font-bold tracking-wide sm:text-6xl lg:px-4 lg:text-6xl xl:text-6xl"
@@ -48,28 +49,28 @@ const serviceName = 'Notion-Google Tasks Sync Service';
 		</h1>
 		<div class="mt-8 flex w-full max-w-4xl flex-wrap justify-center gap-6">
 			<div class="card">
-				<div class="card-title">Two-way</div>
-				 Two-way syncronisation
+				<div class="card-title">Two-way 🔄</div>
+				 Changes made in Google Tasks are reflected in Notion and vice versa.
 			</div>
 			<div class="card">
-				<div class="card-title">Instant (almost) ⚡️</div>
-				<div>Your data is synced every 5 minutes.</div>
+				<div class="card-title">New Instant sync ⚡️</div>
+				<div>Your data is synced every {syncTime}.</div>
 			</div>
 			<div class="card">
 				<div class="card-title">Secure 🔒</div>
 				<div>
-					Data is stored in an encrypted storage. We don't store the data
-					itself. Only access tokens of Github and Notion, mapping between the
-					tasks and connected Google Tasklist id and Notion database id. We
-					comply with Google Requirements for handling user data.
+					Data is stored in an encrypted CLoudflare D1 storage and we're
+					compliant with Google policies for handling user data. We store only
+					the minimum required data (such as tasks ids). We do not store the
+					contents of your tasks.
 				</div>
 			</div>
 			<div class="card">
 				<div class="card-title">Data safety</div>
 				<div>
-					We care about your data and we never delete it. Deleted Google tasks
-					are archived in Notion. Deleted or archived Notion tasks are marked as
-					completed in Google.
+					We care about your data and we never delete it. We mark deleted Google
+					tasks as archived in Notion. We mark deleted or archived Notion tasks
+					as completed in Google.
 				</div>
 			</div>
 			<div class="card">
