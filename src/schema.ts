@@ -25,6 +25,12 @@ export const users = sqliteTable('users', {
 		[GTaskIdT, NTaskIdT, CompletedAtT?][]
 	>(),
 	lastSynced: integer('last_synced', { mode: 'timestamp' }), // Important to recognize that sync was established successfully
+	setupCompletionPromptSent: integer('setup_completion_prompt_sent', {
+		mode: 'boolean',
+	}),
+	setupCompletionPromptSentDate: integer('setup_completion_prompt_sent_date', {
+		mode: 'timestamp',
+	}),
 	created: integer('created', { mode: 'timestamp' }).notNull(),
 	modified: integer('modified', { mode: 'timestamp' }).notNull(),
 });

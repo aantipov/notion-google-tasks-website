@@ -15,8 +15,8 @@
 		"_functions:build": "wrangler pages functions build ./functions",
 		"wrangler": "wrangler",
 		"db": "wrangler d1 execute notion-gtasks --local",
-		"generate": "drizzle-kit generate:sqlite --schema=src/schema.ts",
-		"up": "drizzle-kit up:sqlite --schema=src/schema.ts",
+		"db:generate": "drizzle-kit generate:sqlite --schema=src/schema.ts",
+		"db:up": "drizzle-kit up:sqlite --schema=src/schema.ts",
 		"upgrade": "pnpx npm-upgrade"
 	},
 	"dependencies": {
