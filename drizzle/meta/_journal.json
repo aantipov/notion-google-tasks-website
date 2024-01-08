@@ -15,6 +15,13 @@
       "when": 1704545363198,
       "tag": "0001_smooth_makkari",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1704730867562,
+      "tag": "0002_optimal_wildside",
+      "breakpoints": true
     }
   ]
 }

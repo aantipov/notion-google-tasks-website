@@ -15,8 +15,10 @@
 		"_functions:build": "wrangler pages functions build ./functions",
 		"wrangler": "wrangler",
 		"db": "wrangler d1 execute notion-gtasks --local",
-		"db:generate": "drizzle-kit generate:sqlite --schema=src/schema.ts",
-		"db:up": "drizzle-kit up:sqlite --schema=src/schema.ts",
+		"db:migration-gen": "drizzle-kit generate:sqlite",
+		"db:migration-drop": "drizzle-kit drop",
+		"db:migraion-check": "drizzle-kit check:sqlite",
+		"db:drizzle-metadata-upgrade": "drizzle-kit up:sqlite",
 		"upgrade": "pnpx npm-upgrade"
 	},
 	"dependencies": {
