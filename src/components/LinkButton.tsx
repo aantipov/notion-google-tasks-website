@@ -40,7 +40,7 @@ export default function LinkButton({
 	if (disabled) {
 		return (
 			<a
-				className={`${padding} cursor-not-allowed rounded bg-blue-300 font-bold text-white`}
+				className={`${padding} cursor-not-allowed rounded border border-transparent bg-blue-300 font-bold text-white`}
 				tabIndex={-1}
 			>
 				{children}
@@ -52,7 +52,7 @@ export default function LinkButton({
 		<a
 			href={href}
 			onClick={(event) => handleClick(event)}
-			className={`${padding} inline-block cursor-pointer rounded bg-blue-500 font-bold text-white hover:bg-blue-700`}
+			className={`${padding} inline-block cursor-pointer rounded border border-transparent bg-blue-500 font-bold text-white hover:bg-blue-700`}
 		>
 			{children}
 			{loading && <SpinnerIcon />}

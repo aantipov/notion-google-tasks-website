@@ -26,17 +26,20 @@ export function Step({
 }) {
 	if (state === 'not-connected') {
 		return (
-			<div className="flex w-full cursor-not-allowed items-center rounded border p-5 shadow-md">
-				<span className="text-xl font-semibold text-gray-400 sm:text-2xl">
-					Step 2.
-					<span className="ml-2">Connect Notion Database</span>
-				</span>
-				{isLoading && (
-					<Icon
-						icon="line-md:loading-twotone-loop"
-						className="ml-3 text-2xl text-gray-700"
-					/>
-				)}
+			<div className="w-full cursor-not-allowed rounded border p-5 shadow-md">
+				<div className="flex w-full items-center">
+					<span className="text-xl font-semibold text-gray-400 sm:text-2xl">
+						Step 2.
+						<span className="ml-2">Connect Notion Database</span>
+					</span>
+					{isLoading && (
+						<Icon
+							icon="line-md:loading-twotone-loop"
+							className="ml-3 text-2xl text-gray-700"
+						/>
+					)}
+				</div>
+				{children}
 			</div>
 		);
 	}
@@ -88,6 +91,18 @@ export default function ConnectNotion(props: { hasToken: boolean }) {
 	const dbValidationQ = useDBValidateQuery(
 		!userQ.isLoading && userQ.data?.databaseId,
 	);
+	const createGHIssue = (
+		<>
+			<a
+				href="https://github.com/aantipov/notion-google-tasks-website/issues"
+				target="_blank"
+				className="underline"
+			>
+				create an issue
+			</a>{' '}
+			on Github
+		</>
+	);
 
 	// Auto select Notion database if only one is connected.
 	// We don't check if it has valid schema at this point.
@@ -109,17 +124,39 @@ export default function ConnectNotion(props: { hasToken: boolean }) {
 		return <Step state="not-connected" isLoading={true} />;
 	}
 
-	if (userQ.isError || dbsQ.isError || dbValidationQ.isError || userM.isError) {
+	if (userQ.isError || userM.isError || dbsQ.isError) {
 		return (
-			<Step state="not-connected">
-				<div className="pt-3">
-					<Warning>
-						Something non-predictable happened. Try reload the page and provide
-						the missing info. If the problem persists, please create an issue on
-						Github
-					</Warning>
-				</div>
-			</Step>
+			<div className="w-full">
+				<Step state="not-connected">
+					<div className="pt-3">
+						<Warning>
+							Something wrong happened. Try reload the page and provide the
+							missing info. If the problem persists, please {createGHIssue}
+						</Warning>
+					</div>
+				</Step>
+			</div>
+		);
+	}
+
+	if (dbValidationQ.isError) {
+		return (
+			<div className="w-full">
+				<Step state="in-progress">
+					<div className="pt-3">
+						<Warning>
+							Something wrong happened. Try choose a different Notion database
+							or reload the page. If the problem persists, please{' '}
+							{createGHIssue}
+						</Warning>
+						<div className="mt-3">
+							<LinkButton href="/notion-auth">
+								Amend Notion Connection
+							</LinkButton>
+						</div>
+					</div>
+				</Step>
+			</div>
 		);
 	}
 
@@ -180,9 +217,7 @@ export default function ConnectNotion(props: { hasToken: boolean }) {
 			return (
 				<Step state="in-progress">
 					<div className="pt-3">
-						<Warning>
-							Some Unexpected error. Please create an issue on Github
-						</Warning>
+						<Warning>Some Unexpected error. Please {createGHIssue}</Warning>
 					</div>
 				</Step>
 			);
@@ -205,16 +240,16 @@ export default function ConnectNotion(props: { hasToken: boolean }) {
 						)}
 						{dbValidationIssues.wrongStatusField && (
 							<div>
-								- "<span>Status</span>" field needs{' '}
-								<span className="italic">Done</span> and{' '}
-								<span className="italic">To Do</span> options.
+								- "<span>Status</span>" field needs "
+								<span className="italic">Done</span>" and "
+								<span className="italic">To Do</span>" options.
 							</div>
 						)}
 						<div className="mt-2 font-bold">Choose Your Action:</div>
 						<div className="flex">
 							<div className="mx-2 text-4xl leading-5">•</div>
 							<div>
-								<div>After making necessary updates in Notion:</div>
+								<div>change database configuration in Notion and then:</div>
 								<div>
 									<Button
 										onClick={() => dbValidationQ.refetch()}
@@ -230,7 +265,6 @@ export default function ConnectNotion(props: { hasToken: boolean }) {
 						<div className="mt-1 flex">
 							<div className="mx-2 text-4xl leading-5">•</div>
 							<div>
-								<div>Prefer a different database?</div>
 								<div>
 									<LinkButton href="/notion-auth" size="small">
 										Choose Another Database

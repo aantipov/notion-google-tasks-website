@@ -47,6 +47,7 @@ export const onRequestGet: PagesFunction<CFEnvT> = async ({ env, request }) => {
 				],
 			});
 		} else {
+			console.error('ERROR fetching user info', error);
 			return new Response('Error fetching user info', { status: 500 });
 		}
 	}

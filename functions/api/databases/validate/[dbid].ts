@@ -53,6 +53,7 @@ export const onRequestGet: PagesFunction<CFEnvT> = async ({
 			userData.nToken.access_token,
 		);
 	} catch (error) {
+		console.error('Error fetching database schema', error);
 		return new Response('Error fetching database schema', { status: 500 });
 	}
 

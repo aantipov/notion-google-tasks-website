@@ -106,6 +106,18 @@ export default function ConnectGoogle(props: { hasToken: boolean }) {
 	>(null);
 	const [userWantChangeTasklist, setUserWantChangeTasklist] =
 		useState<boolean>(false);
+	const createGHIssue = (
+		<>
+			<a
+				href="https://github.com/aantipov/notion-google-tasks-website/issues"
+				target="_blank"
+				className="underline"
+			>
+				create an issue
+			</a>{' '}
+			on Github
+		</>
+	);
 
 	// Save tasklist if there is only one
 	useEffect(() => {
@@ -137,9 +149,11 @@ export default function ConnectGoogle(props: { hasToken: boolean }) {
 		return (
 			<div className="w-full">
 				<Step state="ready-to-connect" />
-				<div className="mt-1 text-orange-500">
-					Oops! Required permissions are missing. Please click 'Connect Google
-					Tasks' to grant full access for proper functionality.
+				<div className="mt-1">
+					<Warning>
+						Oops! Required permissions are missing. Please click 'Connect Google
+						Tasks' to grant full access for proper functionality.
+					</Warning>
 				</div>
 			</div>
 		);
@@ -150,8 +164,24 @@ export default function ConnectGoogle(props: { hasToken: boolean }) {
 		return (
 			<div className="w-full">
 				<Step state="ready-to-connect" />
-				<div className="mt-1 text-orange-500">
-					Your session has expired. Please click "Connect Google Tasks"
+				<div className="mt-1">
+					<Warning>
+						Your session has expired. Please click "Connect Google Tasks"
+					</Warning>
+				</div>
+			</div>
+		);
+	}
+
+	if (userQ.error) {
+		return (
+			<div className="w-full">
+				<Step state="ready-to-connect" />
+				<div className="pt-3">
+					<Warning>
+						Something went wrong. Try reload the page and provide the missing
+						info. If the problem persists, please {createGHIssue}
+					</Warning>
 				</div>
 			</div>
 		);

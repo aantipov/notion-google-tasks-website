@@ -19,7 +19,8 @@
 		"db:migration-drop": "drizzle-kit drop",
 		"db:migraion-check": "drizzle-kit check:sqlite",
 		"db:drizzle-metadata-upgrade": "drizzle-kit up:sqlite",
-		"upgrade": "pnpx npm-upgrade"
+		"upgrade": "pnpx npm-upgrade",
+		"tail": "wrangler pages deployment tail"
 	},
 	"dependencies": {
 		"@astrojs/check": "^0.3.1",
