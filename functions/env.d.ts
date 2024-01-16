@@ -8,4 +8,5 @@ interface CFEnvT {
 	NOTION_REDIRECT_URI: string;
 	JWT_SECRET: string;
 	DB: D1Database;
+	SENTRY_DSN: string;
 }

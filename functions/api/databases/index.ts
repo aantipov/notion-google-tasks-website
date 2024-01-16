@@ -1,4 +1,5 @@
 import * as notionApi from '@/functions-helpers/notion-api';
+import { ServerError } from '@/functions-helpers/server-error';
 import { parseRequestCookies } from '@/helpers/parseRequestCookies';
 import { decodeJWTTokens } from '@/helpers/decodeJWTTokens';
 import { DELETE_GTOKEN_COOKIE } from '@/constants';
@@ -30,7 +31,7 @@ export const onRequestGet: PagesFunction<CFEnvT> = async ({ env, request }) => {
 			.where(eq(users.email, userEmail))
 			.limit(1);
 	} catch (error) {
-		return new Response('Error fetching user data', { status: 500 });
+		throw new ServerError('Failed to fetch user data', error);
 	}
 
 	if (!userData?.nToken) {

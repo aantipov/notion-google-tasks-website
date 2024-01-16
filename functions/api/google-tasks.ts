@@ -1,4 +1,5 @@
 import * as googleApi from '@/functions-helpers/google-api';
+import { ServerError } from '@/functions-helpers/server-error';
 import jwt from '@tsndr/cloudflare-worker-jwt';
 import { DELETE_GTOKEN_COOKIE, DELETE_NTOKEN_COOKIE } from '@/constants';
 import { users, type UserRawT } from '@/schema';
@@ -39,7 +40,6 @@ export const onRequestGet: PagesFunction<CFEnvT> = async ({ env, request }) => {
 
 		return Response.json(res);
 	} catch (error) {
-		console.error('Error fetching google tasks', error);
 		// @ts-ignore
 		if (error?.code === 401) {
 			return new Response('Invalid token', {
@@ -47,7 +47,7 @@ export const onRequestGet: PagesFunction<CFEnvT> = async ({ env, request }) => {
 				headers: [['Set-Cookie', DELETE_GTOKEN_COOKIE]],
 			});
 		}
-		return new Response('Error fetching user data', { status: 500 });
+		throw new ServerError('Failed to fetch google tasks', error);
 	}
 };
 

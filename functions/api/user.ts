@@ -1,3 +1,4 @@
+import { ServerError } from '@/functions-helpers/server-error';
 import { parseRequestCookies } from '@/helpers/parseRequestCookies';
 import { decodeJWTTokens } from '@/helpers/decodeJWTTokens';
 import {
@@ -47,8 +48,7 @@ export const onRequestGet: PagesFunction<CFEnvT> = async ({ env, request }) => {
 				],
 			});
 		} else {
-			console.error('ERROR fetching user info', error);
-			return new Response('Error fetching user info', { status: 500 });
+			throw new ServerError('Failed to fetch user info', error);
 		}
 	}
 
@@ -63,7 +63,7 @@ export const onRequestGet: PagesFunction<CFEnvT> = async ({ env, request }) => {
 			.where(eq(users.email, userEmail))
 			.limit(1);
 	} catch (error) {
-		return new Response('Error fetching user data', { status: 500 });
+		throw new ServerError('Failed to fetch user data', error);
 	}
 
 	// Create a new user if not exists in DB
@@ -85,7 +85,7 @@ export const onRequestGet: PagesFunction<CFEnvT> = async ({ env, request }) => {
 			// Reassign the newsly created user to userData
 			[userData] = await db.insert(users).values(newUser).returning();
 		} catch (error) {
-			return new Response('Error creating new user', { status: 500 });
+			throw new ServerError('Failed to create new user', error);
 		}
 	}
 
@@ -101,7 +101,7 @@ export const onRequestGet: PagesFunction<CFEnvT> = async ({ env, request }) => {
 				.where(eq(users.email, userEmail))
 				.returning();
 		} catch (error) {
-			return new Response('Error updating user data', { status: 500 });
+			throw new ServerError('Failed to update user data', error);
 		}
 	}
 
@@ -158,7 +158,7 @@ export const onRequestPost: PagesFunction<CFEnvT> = async ({
 			.where(eq(users.email, email))
 			.returning();
 	} catch (error) {
-		return new Response('Error updating user data', { status: 500 });
+		throw new ServerError('Failed to update user data', error);
 	}
 
 	return Response.json(getSafeUserData(userData));

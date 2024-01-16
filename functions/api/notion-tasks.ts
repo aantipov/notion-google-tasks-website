@@ -1,4 +1,5 @@
 import * as notionApi from '@/functions-helpers/notion-api';
+import { ServerError } from '@/functions-helpers/server-error';
 import { parseRequestCookies } from '@/helpers/parseRequestCookies';
 import { decodeJWTTokens } from '@/helpers/decodeJWTTokens';
 import { eq } from 'drizzle-orm';
@@ -41,7 +42,7 @@ export const onRequestGet: PagesFunction<CFEnvT> = async ({ env, request }) => {
 			throw new Error('User not found');
 		}
 	} catch (error) {
-		return new Response('Error fetching user data', { status: 500 });
+		throw new ServerError('Failed to fetch user data', error);
 	}
 
 	const { nToken, databaseId } = userData;

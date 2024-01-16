@@ -1,5 +1,6 @@
 import * as notionApi from '@/functions-helpers/notion-api';
 import { parseRequestCookies } from '@/helpers/parseRequestCookies';
+import { ServerError } from '@/functions-helpers/server-error';
 import { decodeJWTTokens } from '@/helpers/decodeJWTTokens';
 import { DELETE_GTOKEN_COOKIE } from '@/constants';
 import { drizzle } from 'drizzle-orm/d1';
@@ -39,7 +40,7 @@ export const onRequestGet: PagesFunction<CFEnvT> = async ({
 			.where(eq(users.email, userEmail))
 			.limit(1);
 	} catch (error) {
-		return new Response('Error fetching user data', { status: 500 });
+		throw new ServerError('Failed to fetch user data', error);
 	}
 
 	if (!userData?.nToken) {
@@ -53,8 +54,7 @@ export const onRequestGet: PagesFunction<CFEnvT> = async ({
 			userData.nToken.access_token,
 		);
 	} catch (error) {
-		console.error('Error fetching database schema', error);
-		return new Response('Error fetching database schema', { status: 500 });
+		throw new ServerError('Failed to fetch database schema', error);
 	}
 
 	return Response.json(notionApi.validateDbBSchema(nDBSchema));
