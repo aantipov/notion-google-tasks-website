@@ -10,6 +10,9 @@ type CFEnvT = {
 	JWT_SECRET: string;
 	DB: D1Database;
 	SENTRY_DSN: string;
+	MAILJET_API_KEY: string;
+	MAILJET_SECRET_KEY: string;
+	MAILJET_TEMPLATE_ID: string;
 };
 
 type Runtime = import('@astrojs/cloudflare').DirectoryRuntime<CFEnvT>;

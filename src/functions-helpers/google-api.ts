@@ -78,7 +78,7 @@ type GTaskIdT = string;
 type NTaskIdT = string;
 type IdTupleT = [GTaskIdT, NTaskIdT];
 
-export async function createAllGoogleTasks(
+export async function createAllTasks(
 	nTasks: NTaskT[],
 	gTasklistId: string,
 	accessToken: string,

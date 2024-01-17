@@ -8,6 +8,14 @@ import { drizzle } from 'drizzle-orm/d1';
 import { users, type UserRawT, type UserT } from '@/schema';
 import { eq } from 'drizzle-orm';
 
+interface MailjetResponseT {
+	Messages: {
+		Status: 'success' | 'error';
+		Errors: any[];
+		To: { Email: string }[];
+	}[];
+}
+
 interface NPropsMapT {
 	title: { id: string; name: string; type: 'title' };
 	status: { id: string; name: string; type: 'status' };
@@ -17,11 +25,12 @@ interface NPropsMapT {
 }
 
 /**
- * Get user notion's dabaseses list
+ * Make initial sync and store mapping between Notion and Google tasks
  */
 export const onRequestPost: PagesFunction<CFEnvT> = async ({
 	env,
 	request,
+	waitUntil,
 }) => {
 	const { gToken } = await getTokensFromCookie(request, env);
 
@@ -90,7 +99,7 @@ export const onRequestPost: PagesFunction<CFEnvT> = async ({
 		nToken.access_token,
 	);
 
-	const gIdTuples = await googleApi.createAllGoogleTasks(
+	const gIdTuples = await googleApi.createAllTasks(
 		nTasks,
 		tasklistId,
 		gToken.access_token,
@@ -108,6 +117,8 @@ export const onRequestPost: PagesFunction<CFEnvT> = async ({
 			})
 			.where(eq(users.email, email))
 			.returning();
+
+		waitUntil(sendCongratsEmail(email, env));
 	} catch (error) {
 		throw new ServerError('Failed to update user data', error);
 	}
@@ -126,4 +137,42 @@ async function getTokensFromCookie(req: Request, env: CFEnvT) {
 function getSafeUserData(user: UserRawT): UserT {
 	const { gToken: _, nToken: __, mapping: ___, ...safeUserData } = user;
 	return { ...safeUserData, nConnected: !!user.nToken };
+}
+
+async function sendCongratsEmail(email: string, env: CFEnvT): Promise<void> {
+	// Use Mailjet API to send emails
+	// https://dev.mailjet.com/email/guides/send-api-v31/
+	const mailjetUrl = 'https://api.mailjet.com/v3.1/send';
+	const emailData = {
+		Globals: {
+			CustomCampaign: 'Congrats on Initial Sync',
+			TemplateID: Number(env.MAILJET_TEMPLATE_ID),
+		},
+		Messages: [{ To: [{ Email: email }] }],
+	};
+	const response = await fetch(mailjetUrl, {
+		method: 'POST',
+		headers: {
+			Authorization:
+				'Basic ' + btoa(`${env.MAILJET_API_KEY}:${env.MAILJET_SECRET_KEY}`),
+			'Content-Type': 'application/json',
+		},
+		body: JSON.stringify(emailData),
+	});
+	if (!response.ok) {
+		console.error(
+			`Mailjet API error: ${response.status} ${response.statusText}`,
+		);
+		throw new ServerError(
+			`Mailjet API error: ${response.status} ${response.statusText}`,
+		);
+	}
+	const responseJson = (await response.json()) as MailjetResponseT;
+
+	if (responseJson.Messages.some((msg) => msg.Status !== 'success')) {
+		console.error('Mailjet Send error', JSON.stringify(responseJson, null, 2));
+		throw new ServerError(
+			`Mailjet Send error: ${responseJson.Messages[0].Errors}`,
+		);
+	}
 }
