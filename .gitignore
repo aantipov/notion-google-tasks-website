@@ -15,6 +15,7 @@ functions/*
 !functions/api/*
 !functions/env.d.ts
 !functions/tsconfig.json
+!functions/_middleware.ts
 
 # generated types
 .astro/

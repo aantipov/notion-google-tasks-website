@@ -12,4 +12,5 @@ interface CFEnvT {
 	MAILJET_API_KEY: string;
 	MAILJET_SECRET_KEY: string;
 	MAILJET_TEMPLATE_ID: string;
+	ENVIRONMENT: 'development' | 'production';
 }

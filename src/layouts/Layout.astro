@@ -65,6 +65,28 @@ const ogDesc =
 			defer
 			data-domain="notion-google-tasks-sync.com"
 			src="https://plausible.io/js/script.js"></script>
+
+		<script>
+			import * as Sentry from '@sentry/browser';
+
+			// PUBLIC_ENV is set in npm build script
+			const isProd = import.meta.env.PUBLIC_ENV === 'production';
+
+			if (isProd) {
+				Sentry.init({
+					dsn: 'https://0593d322e7b404381ce143e1f38db3e7@o477177.ingest.sentry.io/4506587593048064',
+					debug: false,
+					release: 'notion-google-tasks-website@1.0.0',
+					environment: 'production',
+					sampleRate: 1.0, // 0.1 = 10% of events sent
+					autoSessionTracking: true,
+					tracesSampleRate: 1.0,
+					replaysSessionSampleRate: 1.0, // 0.1 = 10% of sessions are recorded
+					replaysOnErrorSampleRate: 1.0, // 0.1 = 10% of errors are recorded
+					integrations: [new Sentry.BrowserTracing(), new Sentry.Replay()],
+				});
+			}
+		</script>
 	</head>
 	<body class="bg-white text-lg text-gray-800">
 		{
