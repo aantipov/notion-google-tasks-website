@@ -4,11 +4,12 @@ import {
 	useUserMutation,
 	useDBValidateQuery,
 } from '@/helpers/api';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import LinkButton from './LinkButton';
 import Button from './Button';
 import Warning from './Warning';
 import ErrorComponent from './Error';
+import Modal from './Modal';
 import type {
 	DBSchemaFieldT,
 	SchemaValidationResponseT,
@@ -83,6 +84,7 @@ export function Step({
 }
 
 export default function ConnectNotion(props: { hasToken: boolean }) {
+	const [isModalOpen, setIsModalOpen] = useState(false);
 	const userQ = useUserQuery(props.hasToken);
 	const userM = useUserMutation();
 	const isGoogleSetUp = !userQ.error && !!userQ.data?.tasklistId;
@@ -227,55 +229,99 @@ export default function ConnectNotion(props: { hasToken: boolean }) {
 				<div className="pt-3">
 					<Warning title="Warning">
 						<div>
-							The database "<span>{selectedDBName}</span>" requires
-							configuration changes:
+							The database "<span>{selectedDBName}</span>" needs configuration
+							changes:
 						</div>
 						{dbValidationIssues.missingFields.length > 0 && (
 							<div className="mt-1">
-								- <span>Missing fields</span>:{' '}
-								{dbValidationIssues.missingFields
-									.map((field) => `"${field}"`)
-									.join(', ')}
+								- <span>Missing fields</span>: {/*  */}
+								{dbValidationIssues.missingFields.map((field, index) => (
+									<>
+										"<span className="font-mono">{field}</span>"
+										{index < dbValidationIssues.missingFields.length - 1
+											? ', '
+											: ''}
+									</>
+								))}
 							</div>
 						)}
 						{dbValidationIssues.wrongStatusField && (
 							<div>
-								- "<span>Status</span>" field needs "
-								<span className="italic">Done</span>" and "
-								<span className="italic">To Do</span>" options.
+								- "<span className="font-mono">Status</span>" field should have
+								"<span className="font-mono">Done</span>" and "
+								<span className="font-mono">To&nbsp;Do</span>" options.
 							</div>
 						)}
+
 						<div className="mt-2 font-bold">Choose Your Action:</div>
-						<div className="flex">
-							<div className="mx-2 text-4xl leading-5">•</div>
-							<div>
-								<div>change database configuration in Notion and then:</div>
+						<div className="flex flex-col gap-2">
+							<div className="flex">
+								<div className="mx-2 text-4xl leading-5">•</div>
 								<div>
-									<Button
-										onClick={() => dbValidationQ.refetch()}
-										disabled={dbValidationQ.isFetching}
-										loading={dbValidationQ.isFetching}
-										size="small"
-									>
-										Reconnect
-									</Button>
+									<div>
+										change database configuration in Notion (
+										<a
+											className="underline"
+											href="#"
+											onClick={(e) => {
+												e.preventDefault();
+												setIsModalOpen(true);
+											}}
+										>
+											see How
+										</a>
+										) and then:
+									</div>
+									<div>
+										<Button
+											onClick={() => dbValidationQ.refetch()}
+											disabled={dbValidationQ.isFetching}
+											loading={dbValidationQ.isFetching}
+											size="small"
+										>
+											Reconnect
+										</Button>
+									</div>
+								</div>
+							</div>
+
+							<div className="mt-1 flex">
+								<div className="mx-2 text-4xl leading-5">•</div>
+								<div>
+									<div>
+										<LinkButton href="/notion-auth" size="small">
+											Choose Another Database
+										</LinkButton>
+									</div>
 								</div>
 							</div>
 						</div>
-						<div className="mt-1 flex">
-							<div className="mx-2 text-4xl leading-5">•</div>
-							<div>
-								<div>
-									<LinkButton href="/notion-auth" size="small">
-										Choose Another Database
-									</LinkButton>
-								</div>
-							</div>
-						</div>
+
 						<div className="mt-2">
 							Select the appropriate action to proceed with the synchronization
 							process.
 						</div>
+
+						<Modal
+							isOpen={isModalOpen}
+							setIsModalOpen={setIsModalOpen}
+							title="How to configure database fields"
+						>
+							<div style={{ padding: '65% 0 0 0', position: 'relative' }}>
+								<iframe
+									src="https://player.vimeo.com/video/904933059?badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479"
+									allow="autoplay; fullscreen; picture-in-picture"
+									style={{
+										position: 'absolute',
+										top: 0,
+										left: 0,
+										width: '100%',
+										height: '100%',
+									}}
+									title="How to configure Notion Database for Notion-Google Tasks Sync app (Copy)"
+								></iframe>
+							</div>
+						</Modal>
 					</Warning>
 				</div>
 			</Step>
@@ -325,7 +371,7 @@ function getDBValidationIssues(validationRes: SchemaValidationResponseT) {
 				case 'status':
 					return 'Status';
 				case 'due':
-					return 'Due Date';
+					return 'Date';
 				case 'lastEdited':
 					return 'Last Edited Time';
 				case 'lastEditedBy':

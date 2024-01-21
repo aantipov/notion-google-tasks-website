@@ -52,18 +52,29 @@ const isUserDeniedGAccess =
 		<div class="mt-8 flex w-full max-w-2xl justify-center">
 			<ul class="list-disc space-y-2 pl-6">
 				<li>
-					Only tasks' title, due date, and status properties are synced. Tasks
-					descriptions are not synced.
+					Only tasks' "<span class="font-mono">Title</span>", "<span
+						class="font-mono">Date</span
+					>", and "<span class="font-mono">Status</span>" properties are synced.
+					Tasks descriptions are not synced.
 				</li>
-				<li>The tasks' hierarchy is not respected.</li>
+				<li>Tasks hierarchy is not supported.</li>
 				<li>No support for multiple Google Tasklists and Notion databases.</li>
 				<li>
-					Synchronizaion of tasks' time is unfortunately not supported because
-					of the limitation of Google Tasks API.
+					Synchronizaion of tasks' time is unfortunately not supported due to
+					the limitations of the Google Tasks API.
+				</li>
+				<li>
+					Notion Database should be configured to have properties of the
+					following types: "<span class="font-mono">Status</span>", "<span
+						class="font-mono">Date</span
+					>", "<span class="font-mono">Last edited time</span>" and "<span
+						class="font-mono">Last Edited By</span
+					>". "<span class="font-mono">Status</span>" property should have the
+					following options: "<span class="font-mono">To Do</span>", "<span
+						class="font-mono">Done</span
+					>
 				</li>
 			</ul>
 		</div>
 	</section>
 </Layout>
-
-<style></style>

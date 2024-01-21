@@ -19,7 +19,12 @@ export default defineConfig({
 			bindings: { DB: { type: 'd1' } },
 		},
 	}),
-	integrations: [tailwind(), react()],
+	integrations: [
+		tailwind({
+			applyBaseStyles: false, // is needed because of the shadcn/ui
+		}),
+		react(),
+	],
 	vite: {
 		build: {
 			minify: false,

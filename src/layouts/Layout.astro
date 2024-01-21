@@ -1,6 +1,8 @@
 ---
 import { Image } from 'astro:assets';
 import LogoImage from '@/images/logo.png';
+import '@/global.css';
+
 const serviceName = 'Notion-Google Tasks Sync';
 
 interface Props {
@@ -59,6 +61,8 @@ const ogDesc =
 		<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
 		<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
 		<link rel="manifest" href="/site.webmanifest" />
+
+		<script is:inline src="https://player.vimeo.com/api/player.js"></script>
 
 		<!-- Analytics -->
 		<script

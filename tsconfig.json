@@ -5,15 +5,15 @@
 		"baseUrl": ".",
 		"paths": {
 			"@/*": ["src/*"],
-			"@helpers/*": ["src/helpers/*"]
+			"@helpers/*": ["src/helpers/*"],
 		},
 		"verbatimModuleSyntax": true,
 		"plugins": [
 			{
-				"name": "@astrojs/ts-plugin"
-			}
+				"name": "@astrojs/ts-plugin",
+			},
 		],
 		"jsx": "react-jsx",
-		"jsxImportSource": "react"
-	}
+		"jsxImportSource": "react",
+	},
 }
