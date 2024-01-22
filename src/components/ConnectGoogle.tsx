@@ -5,8 +5,9 @@ import {
 	useTasklistsQuery,
 } from '@/helpers/api';
 import Warning from './Warning';
-import Button from './Button';
 import { Icon } from '@iconify/react';
+import { Button } from '@/components/ui/button';
+import { Loader2 } from 'lucide-react';
 
 interface TaskListOptionProps {
 	id: string;
@@ -213,10 +214,14 @@ export default function ConnectGoogle(props: { hasToken: boolean }) {
 				{userSelectedTasklistId && (
 					<Button
 						onClick={() => userM.mutate({ tasklistId: userSelectedTasklistId })}
-						loading={userM.isPending}
 						disabled={userM.isPending}
+						variant="cta"
+						size="lg"
 					>
-						Save selection
+						{userM.isPending && (
+							<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+						)}
+						Save Selection
 					</Button>
 				)}
 			</Step>
@@ -232,15 +237,16 @@ export default function ConnectGoogle(props: { hasToken: boolean }) {
 						Connected tasks list: "<span>{selectedTaskList?.title}</span>"
 					</div>
 					{!userQ.data?.lastSynced && (
-						<button
-							className="ml-2 rounded border border-gray-400 bg-gray-100 px-3 py-1 text-base font-semibold text-gray-700 shadow hover:bg-gray-200"
+						<Button
+							className="ml-2"
+							variant="outline"
 							onClick={() => {
 								setUserSelectedTasklistId(selectedTaskList.id);
 								setUserWantChangeTasklist(true);
 							}}
 						>
 							Edit
-						</button>
+						</Button>
 					)}
 				</div>
 			</Step>
@@ -268,15 +274,13 @@ export default function ConnectGoogle(props: { hasToken: boolean }) {
 					))}
 				</div>
 
-				<div className="flex gap-2">
-					<button
-						onClick={() => {
-							setUserWantChangeTasklist(false);
-						}}
-						className="mt-1 rounded border border-blue-500 bg-transparent px-4 py-2 font-semibold text-blue-700 hover:border-transparent hover:bg-blue-500 hover:text-white"
+				<div className="mt-3 flex gap-2">
+					<Button
+						variant="secondary"
+						onClick={() => setUserWantChangeTasklist(false)}
 					>
 						Cancel
-					</button>
+					</Button>
 
 					{userSelectedTasklistId && (
 						<Button
@@ -285,9 +289,11 @@ export default function ConnectGoogle(props: { hasToken: boolean }) {
 								setUserWantChangeTasklist(false);
 							}}
 							disabled={userM.isPending}
-							loading={userM.isPending}
 						>
-							Save selection
+							{userM.isPending && (
+								<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+							)}
+							Save Selection
 						</Button>
 					)}
 				</div>

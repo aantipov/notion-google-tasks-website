@@ -22,11 +22,10 @@ export const onRequest: PagesFunction<CFEnvT>[] = [
 	},
 	// Initialize a Sentry Plugin to capture any errors (it re-throws them)
 	(context) => {
-		if (context.env.ENVIRONMENT === 'development') {
-			return context.next();
-		}
-
-		return sentryPlugin({ dsn: context.env.SENTRY_DSN })(context);
+		return sentryPlugin({
+			dsn: context.env.SENTRY_DSN,
+			enabled: context.env.ENVIRONMENT !== 'development',
+		})(context);
 	},
 
 	// Populate the Sentry plugin with additional information about the current user

@@ -5,8 +5,10 @@ import {
 	useDBValidateQuery,
 } from '@/helpers/api';
 import { useEffect, useState } from 'react';
-import LinkButton from './LinkButton';
-import Button from './Button';
+import clsx from 'clsx';
+import { Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
 import Warning from './Warning';
 import ErrorComponent from './Error';
 import Modal from './Modal';
@@ -152,9 +154,14 @@ export default function ConnectNotion(props: { hasToken: boolean }) {
 							{createGHIssue}
 						</Warning>
 						<div className="mt-3">
-							<LinkButton href="/notion-auth">
+							<a
+								href="/notion-auth"
+								className={clsx(
+									buttonVariants({ variant: 'cta', class: 'ml-2', size: 'lg' }),
+								)}
+							>
 								Amend Notion Connection
-							</LinkButton>
+							</a>
 						</div>
 					</div>
 				</Step>
@@ -183,7 +190,12 @@ export default function ConnectNotion(props: { hasToken: boolean }) {
 						connected to Google Tasks
 					</Warning>
 					<div className="mt-3">
-						<LinkButton href="/notion-auth">Amend Notion Connection</LinkButton>
+						<a
+							href="/notion-auth"
+							className={clsx(buttonVariants({ variant: 'cta', size: 'lg' }))}
+						>
+							Amend Notion Connection
+						</a>
 					</div>
 				</div>
 			</Step>
@@ -201,7 +213,12 @@ export default function ConnectNotion(props: { hasToken: boolean }) {
 						Google Tasks
 					</Warning>
 					<div className="mt-3">
-						<LinkButton href="/notion-auth">Amend Notion Connection</LinkButton>
+						<a
+							href="/notion-auth"
+							className={clsx(buttonVariants({ variant: 'cta', size: 'lg' }))}
+						>
+							Amend Notion Connection
+						</a>
 					</div>
 				</div>
 			</Step>
@@ -274,11 +291,13 @@ export default function ConnectNotion(props: { hasToken: boolean }) {
 									</div>
 									<div>
 										<Button
+											variant="cta"
 											onClick={() => dbValidationQ.refetch()}
 											disabled={dbValidationQ.isFetching}
-											loading={dbValidationQ.isFetching}
-											size="small"
 										>
+											{dbValidationQ.isFetching && (
+												<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+											)}
 											Reconnect
 										</Button>
 									</div>
@@ -289,9 +308,12 @@ export default function ConnectNotion(props: { hasToken: boolean }) {
 								<div className="mx-2 text-4xl leading-5">•</div>
 								<div>
 									<div>
-										<LinkButton href="/notion-auth" size="small">
+										<a
+											href="/notion-auth"
+											className={clsx(buttonVariants({ variant: 'outline' }))}
+										>
 											Choose Another Database
-										</LinkButton>
+										</a>
 									</div>
 								</div>
 							</div>
@@ -338,7 +360,7 @@ export default function ConnectNotion(props: { hasToken: boolean }) {
 						{!userQ.data.lastSynced && (
 							<a
 								href={'/notion-auth'}
-								className="ml-2 rounded border border-gray-400 bg-gray-100 px-3 py-1 text-base font-semibold text-gray-700 shadow hover:bg-gray-200"
+								className={clsx(buttonVariants({ variant: 'outline' }), 'ml-2')}
 							>
 								Edit
 							</a>
