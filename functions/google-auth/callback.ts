@@ -4,28 +4,29 @@
  */
 
 import jwt from '@tsndr/cloudflare-worker-jwt';
+import type { PluginData } from '@cloudflare/pages-plugin-sentry';
 import * as googleApi from '@/functions-helpers/google-api';
 
-export const onRequestGet: PagesFunction<CFEnvT> = async ({ request, env }) => {
+export const onRequestGet: PagesFunction<CFEnvT, any, PluginData> = async ({
+	request,
+	env,
+	data,
+}) => {
 	const url = new URL(request.url);
 	const authCode = url.searchParams.get('code');
 	const authError = url.searchParams.get('error');
 
+	// Possible Error values: https://datatracker.ietf.org/doc/html/rfc6749#section-4.1.2.1
 	if (authError) {
+		data.sentry.captureException(new Error('Google Auth Error: ' + authError));
 		if (authError === 'access_denied') {
-			return new Response(null, {
-				status: 302,
-				statusText: 'Found',
-				headers: {
-					Location: '/?error=gaccess_denied',
-				},
-			});
+			return Response.redirect(url.origin + '/?error=gaccess_denied', 302);
 		}
-		// TODO: send error to Sentry
-		return new Response(`Error: ${authError}`, { status: 400 });
+		return Response.redirect(url.origin + '/?error=gaccess_error', 302);
 	}
 
 	if (!authCode) {
+		data.sentry.captureException(new Error('Invalid request'));
 		return new Response('Invalid request. Please try again.', {
 			status: 400,
 		});

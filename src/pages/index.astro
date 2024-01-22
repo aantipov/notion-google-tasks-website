@@ -23,9 +23,14 @@ const isFeatureEnabled =
 	Astro.url.searchParams.get('q') === '123';
 const isUserDeniedGAccess =
 	Astro.url.searchParams.get('error') === 'gaccess_denied';
+const isUserDeniedNAccess =
+	Astro.url.searchParams.get('error') === 'naccess_denied';
 ---
 
-<Layout isUserDeniedGAccess={isUserDeniedGAccess}>
+<Layout
+	isUserDeniedGAccess={isUserDeniedGAccess}
+	isUserDeniedNAccess={isUserDeniedNAccess}
+>
 	<Hero />
 
 	<section class="my-32 flex flex-col items-center justify-center">
