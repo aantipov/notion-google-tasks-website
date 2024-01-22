@@ -354,8 +354,11 @@ export default function ConnectNotion(props: { hasToken: boolean }) {
 		return (
 			<div>
 				<Step state="connected">
-					<div className="my-1 flex items-center">
-						<div>Connected database: "{selectedDBName}"</div>
+					<div className="my-1 flex flex-wrap items-center">
+						<div>
+							Connected database: "
+							<span className="font-semibold">{selectedDBName}</span>"
+						</div>
 
 						{!userQ.data.lastSynced && (
 							<a

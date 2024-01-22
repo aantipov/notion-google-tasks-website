@@ -1,4 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from '@/components/ui/toast/toaster';
 import ConnectGoogle from '@/components/ConnectGoogle';
 import ConnectNotion from '@/components/ConnectNotion';
 import InitialSync from './InitialSync';
@@ -26,6 +27,8 @@ export default function Main(props: {
 				<div className="mt-12">
 					<ConnectSuccess hasToken={props.hasToken} />
 				</div>
+
+				<Toaster />
 			</div>
 		</QueryClientProvider>
 	);

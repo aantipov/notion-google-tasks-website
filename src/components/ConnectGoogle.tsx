@@ -2,12 +2,16 @@ import { useEffect, useState } from 'react';
 import {
 	useUserQuery,
 	useUserMutation,
+	useUserDeletion,
 	useTasklistsQuery,
 } from '@/helpers/api';
 import Warning from './Warning';
 import { Icon } from '@iconify/react';
 import { Button } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
+import { useToast } from '@/components/ui/toast/use-toast';
+import clsx from 'clsx';
 
 interface TaskListOptionProps {
 	id: string;
@@ -101,10 +105,13 @@ export function Step({
 export default function ConnectGoogle(props: { hasToken: boolean }) {
 	const userQ = useUserQuery(props.hasToken);
 	const userM = useUserMutation();
+	const userD = useUserDeletion();
 	const tasklistsQ = useTasklistsQuery(props.hasToken);
 	const [userSelectedTasklistId, setUserSelectedTasklistId] = useState<
 		string | null
 	>(null);
+	const { toast } = useToast();
+
 	const [userWantChangeTasklist, setUserWantChangeTasklist] =
 		useState<boolean>(false);
 	const createGHIssue = (
@@ -232,22 +239,62 @@ export default function ConnectGoogle(props: { hasToken: boolean }) {
 	if (!userQ.error && selectedTaskList && !userWantChangeTasklist) {
 		return (
 			<Step state="connected">
-				<div className="mt-1 flex items-center">
-					<div>
-						Connected tasks list: "<span>{selectedTaskList?.title}</span>"
-					</div>
-					{!userQ.data?.lastSynced && (
-						<Button
-							className="ml-2"
-							variant="outline"
-							onClick={() => {
-								setUserSelectedTasklistId(selectedTaskList.id);
-								setUserWantChangeTasklist(true);
-							}}
+				<div className="mt-1 ">
+					<div className="flex flex-wrap items-center">
+						Connected account:
+						<span className="ml-1 font-semibold">{userQ.data?.email}</span>
+						<a
+							href="/google-auth"
+							className={clsx(
+								buttonVariants({ variant: 'outline', className: 'ml-2' }),
+							)}
 						>
 							Edit
+						</a>
+						<Button
+							onClick={() => {
+								userD.mutate(
+									{ email: userQ.data!.email },
+									{
+										onSuccess: () => {
+											toast({
+												variant: 'dark',
+												description: `Account ${userQ.data?.email} was successfully deleted from our system. Reloading the page...`,
+											});
+											setTimeout(() => {
+												window.location.reload();
+											}, 3500);
+										},
+									},
+								);
+							}}
+							disabled={userD.isPending}
+							variant="destructive"
+							className="ml-2"
+						>
+							{userD.isPending && (
+								<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+							)}
+							{userD.isPending ? 'Resetting...' : 'Reset'}
 						</Button>
-					)}
+					</div>
+
+					<div className="flex flex-wrap items-center">
+						Connected tasks list: "
+						<span className="font-semibold">{selectedTaskList?.title}</span>"
+						{!userQ.data?.lastSynced && (
+							<Button
+								className="ml-2"
+								variant="outline"
+								onClick={() => {
+									setUserSelectedTasklistId(selectedTaskList.id);
+									setUserWantChangeTasklist(true);
+								}}
+							>
+								Edit
+							</Button>
+						)}
+					</div>
 				</div>
 			</Step>
 		);

@@ -164,6 +164,53 @@ export const onRequestPost: PagesFunction<CFEnvT> = async ({
 	return Response.json(getSafeUserData(userData));
 };
 
+export const onRequestDelete: PagesFunction<CFEnvT> = async ({
+	env,
+	request,
+}) => {
+	const { email } = (await request.json()) as { email: string };
+
+	if (!email) {
+		return new Response('Invalid request', { status: 400 });
+	}
+
+	const { gToken } = await getTokensFromCookie(request, env);
+
+	if (!gToken) {
+		return new Response('Invalid token', {
+			status: 401,
+			headers: [
+				['Set-Cookie', DELETE_GTOKEN_COOKIE],
+				['Set-Cookie', DELETE_NTOKEN_COOKIE],
+			],
+		});
+	}
+
+	const tokenEmail = gToken.user.email;
+	if (email !== tokenEmail) {
+		return new Response('Invalid request', { status: 400 });
+	}
+
+	const db = drizzle(env.DB, { logger: true });
+
+	try {
+		const res = await db.delete(users).where(eq(users.email, email));
+		if (!res.success) {
+			throw new Error(res.error);
+		}
+	} catch (error) {
+		throw new ServerError('Failed to update user data', error);
+	}
+
+	return new Response('User deleted', {
+		status: 200,
+		headers: [
+			['Set-Cookie', DELETE_GTOKEN_COOKIE],
+			['Set-Cookie', DELETE_NTOKEN_COOKIE],
+		],
+	});
+};
+
 async function getTokensFromCookie(req: Request, env: CFEnvT) {
 	const { gJWTToken, nJWTToken } = parseRequestCookies(req);
 	return await decodeJWTTokens(gJWTToken, nJWTToken, env.JWT_SECRET);

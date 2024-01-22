@@ -81,6 +81,26 @@ export const useUserMutation = () => {
 	});
 };
 
+export const useUserDeletion = () => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: async ({ email }: { email: string }) => {
+			const response = await fetch('/api/user', {
+				method: 'DELETE',
+				body: JSON.stringify({ email }),
+				headers: { 'Content-Type': 'application/json' },
+			});
+			if (!response.ok) {
+				throw new FetchError(response.status);
+			}
+			return;
+		},
+		onSuccess: (data) => {
+			queryClient.setQueryData(['user'], null);
+		},
+	});
+};
+
 export const useTasklistsQuery = (enabled: boolean = true) =>
 	useQuery({
 		queryKey: ['tasklists'],
