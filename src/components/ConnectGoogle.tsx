@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { buttonVariants } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/components/ui/toast/use-toast';
+import ModalConfirm from '@/components/Hero/ModalConfirm';
 import clsx from 'clsx';
 
 interface TaskListOptionProps {
@@ -110,6 +111,8 @@ export default function ConnectGoogle(props: { hasToken: boolean }) {
 	const [userSelectedTasklistId, setUserSelectedTasklistId] = useState<
 		string | null
 	>(null);
+	const [userWantDeleteAccount, setUserWantDeleteAccount] =
+		useState<boolean>(false);
 	const { toast } = useToast();
 
 	const [userWantChangeTasklist, setUserWantChangeTasklist] =
@@ -243,30 +246,19 @@ export default function ConnectGoogle(props: { hasToken: boolean }) {
 					<div className="flex flex-wrap items-center">
 						Connected account:
 						<span className="ml-1 font-semibold">{userQ.data?.email}</span>
-						<a
-							href="/google-auth"
-							className={clsx(
-								buttonVariants({ variant: 'outline', className: 'ml-2' }),
-							)}
-						>
-							Edit
-						</a>
+						{!userQ.data?.lastSynced && (
+							<a
+								href="/google-auth"
+								className={clsx(
+									buttonVariants({ variant: 'outline', className: 'ml-2' }),
+								)}
+							>
+								Edit
+							</a>
+						)}
 						<Button
 							onClick={() => {
-								userD.mutate(
-									{ email: userQ.data!.email },
-									{
-										onSuccess: () => {
-											toast({
-												variant: 'dark',
-												description: `Account ${userQ.data?.email} was successfully deleted from our system. Reloading the page...`,
-											});
-											setTimeout(() => {
-												window.location.reload();
-											}, 3500);
-										},
-									},
-								);
+								setUserWantDeleteAccount(true);
 							}}
 							disabled={userD.isPending}
 							variant="destructive"
@@ -275,7 +267,7 @@ export default function ConnectGoogle(props: { hasToken: boolean }) {
 							{userD.isPending && (
 								<Loader2 className="mr-2 h-4 w-4 animate-spin" />
 							)}
-							{userD.isPending ? 'Resetting...' : 'Reset'}
+							{userD.isPending ? 'Removing...' : 'Remove connection'}
 						</Button>
 					</div>
 
@@ -295,6 +287,44 @@ export default function ConnectGoogle(props: { hasToken: boolean }) {
 							</Button>
 						)}
 					</div>
+					<ModalConfirm
+						isOpen={userWantDeleteAccount}
+						setIsOpen={setUserWantDeleteAccount}
+						confirmCb={async () => {
+							userD.mutate(
+								{ email: userQ.data!.email },
+								{
+									onSuccess: () => {
+										toast({
+											variant: 'dark',
+											description: `Account ${userQ.data?.email} was successfully deleted from our system. Reloading the page...`,
+										});
+										setTimeout(() => {
+											window.location.reload();
+										}, 3500);
+									},
+									onSettled: () => {
+										setUserWantDeleteAccount(false);
+									},
+								},
+							);
+						}}
+					>
+						<div className="text-left">
+							<p>
+								This action is irreversible. It will permanently delete your
+								account from our service and remove all associated data from our
+								servers. This includes your synchronization settings, tokens,
+								and any task mappings.
+							</p>
+							<p className="mt-1">
+								<span className="font-semibold">Please note</span>: This will
+								not delete or modify your original tasks in Notion and Google
+								Tasks. Synchronization will be stopped immediately.{' '}
+							</p>
+							<p className="mt-1">Are you sure you want to proceed?</p>
+						</div>
+					</ModalConfirm>
 				</div>
 			</Step>
 		);
