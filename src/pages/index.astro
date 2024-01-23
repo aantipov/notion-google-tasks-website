@@ -25,11 +25,15 @@ const isUserDeniedGAccess =
 	Astro.url.searchParams.get('error') === 'gaccess_denied';
 const isUserDeniedNAccess =
 	Astro.url.searchParams.get('error') === 'naccess_denied';
+const isGAuthError = Astro.url.searchParams.get('error') === 'gaccess_error';
+const isNAuthError = Astro.url.searchParams.get('error') === 'naccess_error';
 ---
 
 <Layout
 	isUserDeniedGAccess={isUserDeniedGAccess}
 	isUserDeniedNAccess={isUserDeniedNAccess}
+	isGAuthError={isGAuthError}
+	isNAuthError={isNAuthError}
 >
 	<Hero />
 
@@ -77,7 +81,7 @@ const isUserDeniedNAccess =
 					>". "<span class="font-mono">Status</span>" property should have the
 					following options: "<span class="font-mono">To Do</span>", "<span
 						class="font-mono">Done</span
-					>
+					>".
 				</li>
 			</ul>
 		</div>

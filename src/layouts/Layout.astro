@@ -10,6 +10,8 @@ interface Props {
 	desc?: string;
 	isUserDeniedGAccess?: boolean;
 	isUserDeniedNAccess?: boolean;
+	isGAuthError?: boolean;
+	isNAuthError?: boolean;
 }
 
 const defaultTitle =
@@ -21,6 +23,8 @@ const {
 	desc = defaultDescription,
 	isUserDeniedGAccess = false,
 	isUserDeniedNAccess = false,
+	isGAuthError = false,
+	isNAuthError = false,
 } = Astro.props;
 const today = new Date();
 const imageUrl = new URL(LogoImage.src, Astro.url.origin);
@@ -102,6 +106,45 @@ const ogDesc =
 						Authorization denied. To use our synchronization service, you need
 						to grant access to your Google Tasks and Notion database.
 					</div>
+				</div>
+			)
+		}
+		{
+			(isGAuthError || isNAuthError) && (
+				<div
+					id="auth-error"
+					class="flex flex-col items-center justify-center bg-red-500 px-4 py-1 text-base font-semibold text-white sm:py-3"
+				>
+					<div class="max-w-2xl">
+						Error connecting to {isGAuthError ? 'Google' : 'Notion'}. To use our
+						synchronization service, you need to grant access to both your
+						Google Tasks and Notion database.
+						<div class="mt-1">
+							Please try again. If you encounter any trouble, contact us
+							<a
+								href="mailto:info@notion-google-tasks-sync.com"
+								target="_blank"
+								class="underline"
+							>
+								via email
+							</a>{' '}
+							or{' '}
+							<a
+								href="https://github.com/aantipov/notion-google-tasks-website/issues"
+								target="_blank"
+								class="underline"
+							>
+								create an issue
+							</a>{' '}
+							on Github.
+						</div>
+					</div>
+					<button
+						class="mt-2 underline"
+						onclick="document.getElementById('auth-error').style.display = 'none'"
+					>
+						CLOSE
+					</button>
 				</div>
 			)
 		}
