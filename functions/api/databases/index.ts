@@ -1,26 +1,18 @@
 import * as notionApi from '@/functions-helpers/notion-api';
 import { ServerError } from '@/functions-helpers/server-error';
-import { parseRequestCookies } from '@/helpers/parseRequestCookies';
-import { decodeJWTTokens } from '@/helpers/decodeJWTTokens';
-import { DELETE_GTOKEN_COOKIE } from '@/constants';
 import { drizzle } from 'drizzle-orm/d1';
 import { users, type UserRawT } from '@/schema';
 import { eq } from 'drizzle-orm';
+import type { AuthDataT } from '@/functions-helpers/auth-data';
 
 /**
  * Get user Notion's databases list
  */
-export const onRequestGet: PagesFunction<CFEnvT> = async ({ env, request }) => {
-	const { gToken } = await getTokensFromCookie(request, env);
-
-	if (!gToken) {
-		return new Response('Invalid token', {
-			status: 401,
-			headers: [['Set-Cookie', DELETE_GTOKEN_COOKIE]],
-		});
-	}
-
-	const userEmail = gToken.user.email.toLowerCase();
+export const onRequestGet: PagesFunction<CFEnvT, any, AuthDataT> = async ({
+	env,
+	data,
+}) => {
+	const userEmail = data.gToken.user.email.toLowerCase();
 	const db = drizzle(env.DB, { logger: true });
 	let userData: UserRawT;
 
@@ -47,8 +39,3 @@ export const onRequestGet: PagesFunction<CFEnvT> = async ({ env, request }) => {
 		headers: { 'Content-Type': 'application/json' },
 	});
 };
-
-async function getTokensFromCookie(req: Request, env: CFEnvT) {
-	const { gJWTToken, nJWTToken } = parseRequestCookies(req);
-	return await decodeJWTTokens(gJWTToken, nJWTToken, env.JWT_SECRET);
-}

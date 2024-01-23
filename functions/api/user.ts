@@ -1,12 +1,11 @@
 import { ServerError } from '@/functions-helpers/server-error';
-import { parseRequestCookies } from '@/helpers/parseRequestCookies';
-import { decodeJWTTokens } from '@/helpers/decodeJWTTokens';
 import {
 	DELETE_GTOKEN_COOKIE,
 	DELETE_NTOKEN_COOKIE,
 	GOOGLE_SCOPES_ARRAY,
 } from '@/constants';
 import * as googleApi from '@/functions-helpers/google-api';
+import type { AuthDataT } from '@/functions-helpers/auth-data';
 import { drizzle } from 'drizzle-orm/d1';
 import { users, type UserRawT, type UserT } from '@/schema';
 import { eq } from 'drizzle-orm';
@@ -17,18 +16,11 @@ import { eq } from 'drizzle-orm';
  * Delete nToken cookie if it's set
  * The returned user data is safe to be sent to the client (no sensitive data)
  */
-export const onRequestGet: PagesFunction<CFEnvT> = async ({ env, request }) => {
-	const { gToken, nToken } = await getTokensFromCookie(request, env);
-
-	if (!gToken) {
-		return new Response('Invalid token', {
-			status: 401,
-			headers: [
-				['Set-Cookie', DELETE_GTOKEN_COOKIE],
-				['Set-Cookie', DELETE_NTOKEN_COOKIE],
-			],
-		});
-	}
+export const onRequestGet: PagesFunction<CFEnvT, any, AuthDataT> = async ({
+	env,
+	data,
+}) => {
+	const { gToken, nToken } = data;
 
 	if (!validateScopes(gToken.scope.split(' '))) {
 		return new Response('Invalid token scopes', { status: 403 });
@@ -121,19 +113,11 @@ export const onRequestGet: PagesFunction<CFEnvT> = async ({ env, request }) => {
 /**
  * Store user-selected Google tasklist id in DB
  */
-export const onRequestPost: PagesFunction<CFEnvT> = async ({
+export const onRequestPost: PagesFunction<CFEnvT, any, AuthDataT> = async ({
 	env,
 	request,
+	data,
 }) => {
-	const { gToken } = await getTokensFromCookie(request, env);
-
-	if (!gToken) {
-		return new Response('Invalid token', {
-			status: 401,
-			headers: [['Set-Cookie', DELETE_GTOKEN_COOKIE]],
-		});
-	}
-
 	const { tasklistId, databaseId } = (await request.json()) as {
 		tasklistId?: string;
 		databaseId?: string;
@@ -143,7 +127,7 @@ export const onRequestPost: PagesFunction<CFEnvT> = async ({
 		return new Response('Invalid request', { status: 400 });
 	}
 
-	const email = gToken.user.email;
+	const email = data.gToken.user.email;
 	const db = drizzle(env.DB, { logger: true });
 	let userData: UserRawT;
 
@@ -164,9 +148,10 @@ export const onRequestPost: PagesFunction<CFEnvT> = async ({
 	return Response.json(getSafeUserData(userData));
 };
 
-export const onRequestDelete: PagesFunction<CFEnvT> = async ({
+export const onRequestDelete: PagesFunction<CFEnvT, any, AuthDataT> = async ({
 	env,
 	request,
+	data,
 }) => {
 	const { email } = (await request.json()) as { email: string };
 
@@ -174,19 +159,7 @@ export const onRequestDelete: PagesFunction<CFEnvT> = async ({
 		return new Response('Invalid request', { status: 400 });
 	}
 
-	const { gToken } = await getTokensFromCookie(request, env);
-
-	if (!gToken) {
-		return new Response('Invalid token', {
-			status: 401,
-			headers: [
-				['Set-Cookie', DELETE_GTOKEN_COOKIE],
-				['Set-Cookie', DELETE_NTOKEN_COOKIE],
-			],
-		});
-	}
-
-	const tokenEmail = gToken.user.email;
+	const tokenEmail = data.gToken.user.email;
 	if (email !== tokenEmail) {
 		return new Response('Invalid request', { status: 400 });
 	}
@@ -210,11 +183,6 @@ export const onRequestDelete: PagesFunction<CFEnvT> = async ({
 		],
 	});
 };
-
-async function getTokensFromCookie(req: Request, env: CFEnvT) {
-	const { gJWTToken, nJWTToken } = parseRequestCookies(req);
-	return await decodeJWTTokens(gJWTToken, nJWTToken, env.JWT_SECRET);
-}
 
 function validateScopes(userScopes: string[]): boolean {
 	const requiredScopes = GOOGLE_SCOPES_ARRAY;

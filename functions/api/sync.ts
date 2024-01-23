@@ -1,12 +1,10 @@
 import * as notionApi from '@/functions-helpers/notion-api';
 import * as googleApi from '@/functions-helpers/google-api';
 import { ServerError } from '@/functions-helpers/server-error';
-import { parseRequestCookies } from '@/helpers/parseRequestCookies';
-import { decodeJWTTokens } from '@/helpers/decodeJWTTokens';
-import { DELETE_GTOKEN_COOKIE } from '@/constants';
 import { drizzle } from 'drizzle-orm/d1';
 import { users, type UserRawT, type UserT } from '@/schema';
 import { eq } from 'drizzle-orm';
+import type { AuthDataT } from '@/functions-helpers/auth-data';
 
 interface MailjetResponseT {
 	Messages: {
@@ -27,20 +25,12 @@ interface NPropsMapT {
 /**
  * Make initial sync and store mapping between Notion and Google tasks
  */
-export const onRequestPost: PagesFunction<CFEnvT> = async ({
+export const onRequestPost: PagesFunction<CFEnvT, any, AuthDataT> = async ({
 	env,
-	request,
+	data,
 	waitUntil,
 }) => {
-	const { gToken } = await getTokensFromCookie(request, env);
-
-	if (!gToken) {
-		return new Response('Invalid token', {
-			status: 401,
-			headers: [['Set-Cookie', DELETE_GTOKEN_COOKIE]],
-		});
-	}
-
+	const { gToken } = data;
 	const email = gToken.user.email;
 	const db = drizzle(env.DB, { logger: true });
 	let userData: UserRawT;
@@ -128,11 +118,6 @@ export const onRequestPost: PagesFunction<CFEnvT> = async ({
 		headers: { 'Content-Type': 'application/json' },
 	});
 };
-
-async function getTokensFromCookie(req: Request, env: CFEnvT) {
-	const { gJWTToken, nJWTToken } = parseRequestCookies(req);
-	return await decodeJWTTokens(gJWTToken, nJWTToken, env.JWT_SECRET);
-}
 
 function getSafeUserData(user: UserRawT): UserT {
 	const { gToken: _, nToken: __, mapping: ___, ...safeUserData } = user;
