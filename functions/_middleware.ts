@@ -36,6 +36,8 @@ const authentication: PagesFunction<CFEnvT, any, PluginData> = async ({
 		env.JWT_SECRET,
 	);
 
+	data.sentry.setTag('ng.request.path', url.pathname);
+
 	if (!gToken) {
 		data.sentry.captureException(new Error('Invalid token'));
 		return new Response('Invalid token', {
