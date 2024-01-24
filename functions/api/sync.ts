@@ -135,15 +135,20 @@ async function sendCongratsEmail(email: string, env: CFEnvT): Promise<void> {
 		},
 		Messages: [{ To: [{ Email: email }] }],
 	};
-	const response = await fetch(mailjetUrl, {
-		method: 'POST',
-		headers: {
-			Authorization:
-				'Basic ' + btoa(`${env.MAILJET_API_KEY}:${env.MAILJET_SECRET_KEY}`),
-			'Content-Type': 'application/json',
-		},
-		body: JSON.stringify(emailData),
-	});
+	let response;
+	try {
+		response = await fetch(mailjetUrl, {
+			method: 'POST',
+			headers: {
+				Authorization:
+					'Basic ' + btoa(`${env.MAILJET_API_KEY}:${env.MAILJET_SECRET_KEY}`),
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify(emailData),
+		});
+	} catch (error) {
+		throw new ServerError('Failed to send congrats email', error);
+	}
 	if (!response.ok) {
 		console.error(
 			`Mailjet API error: ${response.status} ${response.statusText}`,
