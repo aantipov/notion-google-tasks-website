@@ -2,13 +2,11 @@ import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 import type * as googleApi from '@/functions-helpers/google-api';
 import * as notionApi from '@/functions-helpers/notion-api';
 
-type GTokenT = ReturnType<typeof googleApi.fetchToken> extends Promise<infer T>
-	? T
-	: never;
+type GTokenT =
+	ReturnType<typeof googleApi.fetchToken> extends Promise<infer T> ? T : never;
 type GTokenRestrictedT = Pick<GTokenT, 'user' | 'refresh_token'>;
-type NTokenT = ReturnType<typeof notionApi.fetchToken> extends Promise<infer T>
-	? T
-	: never;
+type NTokenT =
+	ReturnType<typeof notionApi.fetchToken> extends Promise<infer T> ? T : never;
 type GTaskIdT = string;
 type NTaskIdT = string;
 type CompletedAtT = string | null; // ISO date string '2023-10-25'
@@ -35,6 +33,7 @@ export const users = sqliteTable('users', {
 		message: string;
 		num: number; // Number of consecutive sync errors
 		nextRetry: number | null; // Timestamp in ms. Null if no retries left. Max 10 retries within 5 days
+		sentEmail: boolean;
 	}>(), // Last sync error message. Reset to null on successful sync
 	created: integer('created', { mode: 'timestamp' }).notNull(),
 	modified: integer('modified', { mode: 'timestamp' }).notNull(),
