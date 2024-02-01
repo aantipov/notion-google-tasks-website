@@ -170,7 +170,7 @@ export async function fetchToken(
 		});
 		if (!tokensResp.ok) {
 			throw new Error(
-				`Failed to fetch token data: ${tokensResp.status} ${tokensResp.statusText}`,
+				`Failed to fetch Google token data: ${tokensResp.status} ${tokensResp.statusText}`,
 			);
 		}
 		// TODO: handle error response
@@ -183,7 +183,7 @@ export async function fetchToken(
 
 		return { ...tokenData, user: userData };
 	} catch (error) {
-		console.error('Error fetching token data', error);
+		console.error('Error fetching Google token data', error);
 		throw error;
 	}
 }

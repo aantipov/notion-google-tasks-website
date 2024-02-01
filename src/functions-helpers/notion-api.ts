@@ -8,6 +8,7 @@ import type { GTaskT } from '@/helpers/api';
 import { NOTION_RATE_LIMIT } from '@/constants';
 import { z, type ZodIssue } from 'zod';
 import type { PageObjectResponse } from '@notionhq/client/build/src/api-endpoints';
+import type { PluginData } from '@cloudflare/pages-plugin-sentry';
 
 type PromiseValueType<T> = T extends Promise<infer R> ? R : T;
 export type DBSchemaT = PromiseValueType<
@@ -291,7 +292,12 @@ export async function fetchDatabases(
 	}
 }
 
-export async function fetchToken(authCode: string, env: CFEnvT) {
+export async function fetchToken(
+	authCode: string,
+	env: CFEnvT,
+	sentry: PluginData['sentry'],
+) {
+	// https://developers.notion.com/reference/create-a-token
 	try {
 		// encode in base 64
 		const encoded = Buffer.from(
@@ -312,13 +318,31 @@ export async function fetchToken(authCode: string, env: CFEnvT) {
 			}),
 		});
 
+		sentry.addBreadcrumb({
+			type: 'http',
+			category: 'xhr',
+			data: {
+				url: tokensResp.url,
+				method: 'POST',
+				status_code: tokensResp.status,
+				reason: tokensResp.statusText,
+			},
+		});
+
 		if (!tokensResp.ok) {
+			if (tokensResp.status === 400) {
+				// Possible error values: https://datatracker.ietf.org/doc/html/rfc6749#section-5.2
+				// @ts-ignore
+				const { error, error_description } = await tokensResp.json();
+				throw new Error(
+					`Failed to fetch token data: ${tokensResp.status} ${tokensResp.statusText}. \n Extra Info: ${error} ${error_description}`,
+				);
+			}
 			throw new Error(
 				`Failed to fetch token data: ${tokensResp.status} ${tokensResp.statusText}`,
 			);
 		}
 
-		// TODO: handle error response with { error } = await tokensResp.json(); Possible values: https://datatracker.ietf.org/doc/html/rfc6749#section-5.2
 		const tokenData = (await tokensResp.json()) as NTokenResponseT;
 		return tokenData;
 	} catch (error) {

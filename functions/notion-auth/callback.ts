@@ -33,11 +33,24 @@ export const onRequestGet: PagesFunction<CFEnvT, any, PluginData> = async ({
 	}
 
 	// Exchange auth code for access token
-	const tokenData = await notionApi.fetchToken(authCode, env);
+	let jwtToken;
+	try {
+		const tokenData = await notionApi.fetchToken(authCode, env, data.sentry);
 
-	// Create JWT token for stateless auth and set in cookie
-	// TODO: set expiration time?
-	const jwtToken = await jwt.sign(tokenData, env.JWT_SECRET);
+		data.sentry.addBreadcrumb({
+			message: 'Notion token fetched successfully',
+			level: 'info',
+			// strip access_token from the data
+			data: { ...tokenData, access_token: '***' },
+		});
+
+		// Create JWT token for stateless auth and set in cookie
+		// TODO: set expiration time?
+		jwtToken = await jwt.sign(tokenData, env.JWT_SECRET);
+	} catch (error) {
+		data.sentry.captureException(error);
+		return Response.redirect(url.origin + '/?error=naccess_error', 302);
+	}
 
 	return new Response(null, {
 		status: 302,

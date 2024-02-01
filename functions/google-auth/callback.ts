@@ -32,12 +32,23 @@ export const onRequestGet: PagesFunction<CFEnvT, any, PluginData> = async ({
 		});
 	}
 
-	// Exchange auth code for access token
-	const tokenData = await googleApi.fetchToken(authCode, env);
+	let jwtToken;
+	try {
+		// Exchange auth code for access token
+		const tokenData = await googleApi.fetchToken(authCode, env);
 
-	// Create JWT token for stateless auth and set in cookie
-	// TODO: set expiration time?
-	const jwtToken = await jwt.sign(tokenData, env.JWT_SECRET);
+		data.sentry.addBreadcrumb({
+			message: 'Google token fetched successfully',
+			level: 'info',
+		});
+
+		// Create JWT token for stateless auth and set in cookie
+		// TODO: set expiration time?
+		jwtToken = await jwt.sign(tokenData, env.JWT_SECRET);
+	} catch (error) {
+		data.sentry.captureException(error);
+		return Response.redirect(url.origin + '/?error=gaccess_error', 302);
+	}
 
 	return new Response(null, {
 		status: 302,

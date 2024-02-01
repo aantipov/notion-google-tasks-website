@@ -36,11 +36,9 @@ const authentication: PagesFunction<CFEnvT, any, PluginData> = async ({
 		env.JWT_SECRET,
 	);
 
-	data.sentry.setTag('ng.request.path', url.pathname);
-
 	if (!gToken) {
-		data.sentry.captureException(new Error('Invalid token'));
-		return new Response('Invalid token', {
+		data.sentry.captureException(new Error('Invalid Google token'));
+		return new Response('Invalid Google token', {
 			status: 401,
 			headers: [
 				['Set-Cookie', DELETE_GTOKEN_COOKIE],
@@ -84,4 +82,10 @@ export const onRequest: PagesFunction<CFEnvT, any, any>[] = [
 	},
 
 	authentication,
+
+	(ctx) => {
+		const url = new URL(ctx.request.url);
+		ctx.data.sentry.setTag('ct.request.path', url.pathname);
+		return ctx.next();
+	},
 ];
