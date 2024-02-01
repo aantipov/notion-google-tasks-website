@@ -14,8 +14,5 @@ export function parseRequestCookies(req: Request) {
 		{} as { [key: string]: string },
 	);
 
-	return {
-		gJWTToken: cookies['gtoken'] || null,
-		nJWTToken: cookies['ntoken'] || null,
-	} as const;
+	return { gJWTToken: cookies['gtoken'] || null } as const;
 }

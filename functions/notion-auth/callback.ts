@@ -3,15 +3,16 @@
  * Google redirects user to this endpoint after they provide consent
  */
 
-import jwt from '@tsndr/cloudflare-worker-jwt';
 import type { PluginData } from '@cloudflare/pages-plugin-sentry';
+import type { AuthDataT } from '@/functions-helpers/auth-data';
 import * as notionApi from '@/functions-helpers/notion-api';
+import * as dbApi from '@/functions-helpers/db-api';
 
-export const onRequestGet: PagesFunction<CFEnvT, any, PluginData> = async ({
-	request,
-	env,
-	data,
-}) => {
+export const onRequestGet: PagesFunction<
+	CFEnvT,
+	any,
+	PluginData & AuthDataT
+> = async ({ request, env, data }) => {
 	const url = new URL(request.url);
 	const authCode = url.searchParams.get('code');
 	const authError = url.searchParams.get('error');
@@ -32,9 +33,8 @@ export const onRequestGet: PagesFunction<CFEnvT, any, PluginData> = async ({
 		});
 	}
 
-	// Exchange auth code for access token
-	let jwtToken;
 	try {
+		// Exchange auth code for access token
 		const tokenData = await notionApi.fetchToken(authCode, env, data.sentry);
 
 		data.sentry.addBreadcrumb({
@@ -44,20 +44,11 @@ export const onRequestGet: PagesFunction<CFEnvT, any, PluginData> = async ({
 			data: { ...tokenData, access_token: '***' },
 		});
 
-		// Create JWT token for stateless auth and set in cookie
-		// TODO: set expiration time?
-		jwtToken = await jwt.sign(tokenData, env.JWT_SECRET);
+		await dbApi.storeNotionToken(data.gToken.user.email, tokenData, env);
 	} catch (error) {
 		data.sentry.captureException(error);
 		return Response.redirect(url.origin + '/?error=naccess_error', 302);
 	}
 
-	return new Response(null, {
-		status: 302,
-		statusText: 'Found',
-		headers: {
-			Location: '/#start-sync',
-			'Set-Cookie': `ntoken=${jwtToken}; HttpOnly; Secure; Path=/; Max-Age=3600;`,
-		},
-	});
+	return Response.redirect(url.origin + '/#start-sync', 302);
 };

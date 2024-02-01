@@ -1,5 +1,5 @@
 import type { AuthDataT } from '@/functions-helpers/auth-data';
-import { DELETE_GTOKEN_COOKIE, DELETE_NTOKEN_COOKIE } from '@/constants';
+import { DELETE_GTOKEN_COOKIE } from '@/constants';
 
 const TASKS_LISTS_URL =
 	'https://tasks.googleapis.com/tasks/v1/users/@me/lists?maxResults=100';
@@ -22,9 +22,7 @@ export const onRequestGet: PagesFunction<CFEnvT, any, AuthDataT> = async ({
 		if (resp.status === 401) {
 			const newResponse = new Response(resp.body, resp);
 
-			// delete gtoken cookie
 			newResponse.headers.set('Set-Cookie', DELETE_GTOKEN_COOKIE);
-			newResponse.headers.set('Set-Cookie', DELETE_NTOKEN_COOKIE);
 
 			return newResponse;
 		}

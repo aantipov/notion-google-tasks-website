@@ -2,21 +2,19 @@
 import Layout from '@/layouts/Layout.astro';
 import Hero from '@/components/Hero/Hero.astro';
 import Main from '@/components/Main.tsx';
-import { decodeJWTTokens } from '@/helpers/decodeJWTTokens';
+import { decodeJWTToken } from '@/helpers/decodeJWTTokens';
 
 export const prerender = false;
 
 const { JWT_SECRET } = Astro.locals.runtime.env;
 const gJwtToken = Astro.cookies.get('gtoken')?.value;
-const nJwtToken = Astro.cookies.get('ntoken')?.value;
 let hasGToken = false;
 try {
-	const tokens = await decodeJWTTokens(gJwtToken, nJwtToken, JWT_SECRET);
-	hasGToken = !!tokens.gToken;
+	const gToken = await decodeJWTToken(gJwtToken, JWT_SECRET);
+	hasGToken = !!gToken;
 } catch (error) {
-	console.error('Error while decoding JWT tokens', error);
+	console.error('Error while decoding JWT token', error);
 	Astro.cookies.set('gtoken', '', { expires: new Date(0) });
-	Astro.cookies.set('ntoken', '', { expires: new Date(0) });
 }
 const isFeatureEnabled =
 	Astro.url.hostname !== 'notion-google-tasks-sync.com' ||
@@ -86,7 +84,7 @@ const isNAuthError = Astro.url.searchParams.get('error') === 'naccess_error';
 
 		<Main
 			client:load
-			hasToken={!!hasGToken}
+			hasToken={hasGToken}
 			isFeatureEnabled={isFeatureEnabled}
 		/>
 	</section>

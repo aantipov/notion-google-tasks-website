@@ -1,9 +1,9 @@
 import sentryPlugin from '@cloudflare/pages-plugin-sentry';
 import { parseRequestCookies } from '@/helpers/parseRequestCookies';
-import { decodeJWTTokens } from '@/helpers/decodeJWTTokens';
+import { decodeJWTToken } from '@/helpers/decodeJWTTokens';
 import type { PluginData } from '@cloudflare/pages-plugin-sentry';
 import { ServerError } from '@/functions-helpers/server-error';
-import { DELETE_GTOKEN_COOKIE, DELETE_NTOKEN_COOKIE } from '@/constants';
+import { DELETE_GTOKEN_COOKIE } from '@/constants';
 // https://developers.cloudflare.com/pages/functions/plugins/sentry/
 // https://github.com/cloudflare/pages-plugins/blob/main/packages/sentry/functions/_middleware.ts
 
@@ -14,6 +14,7 @@ const authentication: PagesFunction<CFEnvT, any, PluginData> = async ({
 	data,
 }) => {
 	const authPaths = [
+		'/notion-auth/callback',
 		'/api/user',
 		'/api/tasklists',
 		'/api/google-tasks',
@@ -29,29 +30,20 @@ const authentication: PagesFunction<CFEnvT, any, PluginData> = async ({
 		return next();
 	}
 
-	const { gJWTToken, nJWTToken } = parseRequestCookies(request);
-	const { gToken, nToken } = await decodeJWTTokens(
-		gJWTToken,
-		nJWTToken,
-		env.JWT_SECRET,
-	);
+	const { gJWTToken } = parseRequestCookies(request);
+	const gToken = await decodeJWTToken(gJWTToken, env.JWT_SECRET);
 
 	if (!gToken) {
 		data.sentry.captureException(new Error('Invalid Google token'));
 		return new Response('Invalid Google token', {
 			status: 401,
-			headers: [
-				['Set-Cookie', DELETE_GTOKEN_COOKIE],
-				['Set-Cookie', DELETE_NTOKEN_COOKIE],
-			],
+			headers: [['Set-Cookie', DELETE_GTOKEN_COOKIE]],
 		});
 	}
 
 	data.sentry.setUser({ email: gToken.user.email });
 	// @ts-ignore
 	data.gToken = gToken;
-	// @ts-ignore
-	data.nToken = nToken;
 
 	return next();
 };

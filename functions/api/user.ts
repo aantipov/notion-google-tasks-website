@@ -1,9 +1,5 @@
 import { ServerError } from '@/functions-helpers/server-error';
-import {
-	DELETE_GTOKEN_COOKIE,
-	DELETE_NTOKEN_COOKIE,
-	GOOGLE_SCOPES_ARRAY,
-} from '@/constants';
+import { DELETE_GTOKEN_COOKIE, GOOGLE_SCOPES_ARRAY } from '@/constants';
 import * as googleApi from '@/functions-helpers/google-api';
 import type { AuthDataT } from '@/functions-helpers/auth-data';
 import { drizzle } from 'drizzle-orm/d1';
@@ -11,16 +7,15 @@ import { users, type UserRawT, type UserT } from '@/schema';
 import { eq } from 'drizzle-orm';
 
 /**
- * Get user data from DB if it's there & set nToken if it's not set yet
+ * Get user data from DB if it's there
  * Otherwise create a new user and return it
- * Delete nToken cookie if it's set
  * The returned user data is safe to be sent to the client (no sensitive data)
  */
 export const onRequestGet: PagesFunction<CFEnvT, any, AuthDataT> = async ({
 	env,
 	data,
 }) => {
-	const { gToken, nToken } = data;
+	const { gToken } = data;
 
 	if (!validateScopes(gToken.scope.split(' '))) {
 		return new Response('Invalid token scopes', { status: 403 });
@@ -34,10 +29,7 @@ export const onRequestGet: PagesFunction<CFEnvT, any, AuthDataT> = async ({
 		if (error?.code === 401) {
 			return new Response('Invalid token', {
 				status: 401,
-				headers: [
-					['Set-Cookie', DELETE_GTOKEN_COOKIE],
-					['Set-Cookie', DELETE_NTOKEN_COOKIE],
-				],
+				headers: [['Set-Cookie', DELETE_GTOKEN_COOKIE]],
 			});
 		} else {
 			throw new ServerError('Failed to fetch user info', error);
@@ -71,9 +63,6 @@ export const onRequestGet: PagesFunction<CFEnvT, any, AuthDataT> = async ({
 				created: new Date(),
 				modified: new Date(),
 			};
-			if (nToken) {
-				newUser.nToken = nToken;
-			}
 			// Reassign the newsly created user to userData
 			[userData] = await db.insert(users).values(newUser).returning();
 		} catch (error) {
@@ -81,28 +70,8 @@ export const onRequestGet: PagesFunction<CFEnvT, any, AuthDataT> = async ({
 		}
 	}
 
-	// Set nToken if it's not set yet
-	if (!userData.nToken && nToken) {
-		try {
-			[userData] = await db
-				.update(users)
-				.set({
-					nToken,
-					modified: new Date(),
-				})
-				.where(eq(users.email, userEmail))
-				.returning();
-		} catch (error) {
-			throw new ServerError('Failed to update user data', error);
-		}
-	}
-
 	const headers = new Headers();
 	headers.append('Content-Type', 'application/json');
-	// We should delete the nToken cookie if it exists, because we store it in DB and gToken should be a single source of truth
-	if (nToken) {
-		headers.append('Set-Cookie', DELETE_NTOKEN_COOKIE);
-	}
 
 	return new Response(JSON.stringify(getSafeUserData(userData)), {
 		status: 200,
@@ -177,10 +146,7 @@ export const onRequestDelete: PagesFunction<CFEnvT, any, AuthDataT> = async ({
 
 	return new Response('User deleted', {
 		status: 200,
-		headers: [
-			['Set-Cookie', DELETE_GTOKEN_COOKIE],
-			['Set-Cookie', DELETE_NTOKEN_COOKIE],
-		],
+		headers: [['Set-Cookie', DELETE_GTOKEN_COOKIE]],
 	});
 };
 
