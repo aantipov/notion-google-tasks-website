@@ -77,7 +77,10 @@ export const onRequest: PagesFunction<CFEnvT, any, any>[] = [
 
 	(ctx) => {
 		const url = new URL(ctx.request.url);
-		ctx.data.sentry.setTag('ct.request.path', url.pathname);
+		const path = url.pathname.startsWith('/api/databases/validate')
+			? '/api/databases/validate/***'
+			: url.pathname;
+		ctx.data.sentry.setTag('ct.request.path', path);
 		return ctx.next();
 	},
 ];
