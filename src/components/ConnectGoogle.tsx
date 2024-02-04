@@ -310,7 +310,7 @@ export default function ConnectGoogle(props: { hasToken: boolean }) {
 							);
 						}}
 					>
-						<div className="text-left">
+						<div className="text-left text-base">
 							<p>
 								This action is irreversible. It will permanently delete your
 								account from our service and remove all associated data from our
