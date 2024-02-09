@@ -54,19 +54,34 @@ export const useUserQuery = (enabled: boolean = true) =>
 		enabled,
 	});
 
-export const useUserMutation = () => {
+export const useUserNotionDBMutation = () => {
 	const queryClient = useQueryClient();
 	return useMutation({
-		mutationFn: async ({
-			tasklistId,
-			databaseId,
-		}: {
-			tasklistId?: string;
-			databaseId?: string;
-		}) => {
+		mutationFn: async (databaseId: string) => {
 			const response = await fetch('/api/user', {
 				method: 'POST',
-				body: JSON.stringify({ tasklistId, databaseId }),
+				body: JSON.stringify({ databaseId }),
+				headers: { 'Content-Type': 'application/json' },
+			});
+			if (!response.ok) {
+				throw new FetchError(response.status);
+			}
+			const data = (await response.json()) as UserT;
+			return data;
+		},
+		onSuccess: (data) => {
+			queryClient.setQueryData(['user'], data);
+		},
+	});
+};
+
+export const useUserTasklistMutation = () => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: async (tasklistId: string) => {
+			const response = await fetch('/api/user', {
+				method: 'POST',
+				body: JSON.stringify({ tasklistId }),
 				headers: { 'Content-Type': 'application/json' },
 			});
 			if (!response.ok) {

@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import {
 	useUserQuery,
-	useUserMutation,
 	useUserDeletion,
 	useTasklistsQuery,
+	useUserTasklistMutation,
 } from '@/helpers/api';
 import Warning from './Warning';
 import { Icon } from '@iconify/react';
@@ -105,7 +105,7 @@ export function Step({
 
 export default function ConnectGoogle(props: { hasToken: boolean }) {
 	const userQ = useUserQuery(props.hasToken);
-	const userM = useUserMutation();
+	const userTasklistM = useUserTasklistMutation();
 	const userD = useUserDeletion();
 	const tasklistsQ = useTasklistsQuery(props.hasToken);
 	const [userSelectedTasklistId, setUserSelectedTasklistId] = useState<
@@ -130,12 +130,16 @@ export default function ConnectGoogle(props: { hasToken: boolean }) {
 		</>
 	);
 
-	// Save tasklist if there is only one
+	// Save tasklist if there is only one && the saved one is different
 	useEffect(() => {
-		if (tasklistsQ.data?.length === 1) {
-			userM.mutate({ tasklistId: tasklistsQ.data[0].id });
+		if (
+			tasklistsQ.data?.length === 1 &&
+			userQ.data &&
+			userQ.data.tasklistId !== tasklistsQ.data[0].id
+		) {
+			userTasklistM.mutate(tasklistsQ.data[0].id);
 		}
-	}, [tasklistsQ.data]);
+	}, [tasklistsQ.data, userQ.data?.tasklistId]);
 
 	const selectedTaskList = (() => {
 		if (!userQ.error && userQ.data?.tasklistId && tasklistsQ.data) {
@@ -222,12 +226,12 @@ export default function ConnectGoogle(props: { hasToken: boolean }) {
 
 				{userSelectedTasklistId && (
 					<Button
-						onClick={() => userM.mutate({ tasklistId: userSelectedTasklistId })}
-						disabled={userM.isPending}
+						onClick={() => userTasklistM.mutate(userSelectedTasklistId)}
+						disabled={userTasklistM.isPending}
 						variant="cta"
 						size="lg"
 					>
-						{userM.isPending && (
+						{userTasklistM.isPending && (
 							<Loader2 className="mr-2 h-4 w-4 animate-spin" />
 						)}
 						Save Selection
@@ -361,12 +365,12 @@ export default function ConnectGoogle(props: { hasToken: boolean }) {
 					{userSelectedTasklistId && (
 						<Button
 							onClick={async () => {
-								await userM.mutateAsync({ tasklistId: userSelectedTasklistId });
+								await userTasklistM.mutateAsync(userSelectedTasklistId);
 								setUserWantChangeTasklist(false);
 							}}
-							disabled={userM.isPending}
+							disabled={userTasklistM.isPending}
 						>
-							{userM.isPending && (
+							{userTasklistM.isPending && (
 								<Loader2 className="mr-2 h-4 w-4 animate-spin" />
 							)}
 							Save Selection

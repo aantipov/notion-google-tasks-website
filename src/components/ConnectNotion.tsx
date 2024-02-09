@@ -1,7 +1,7 @@
 import {
 	useDBsQuery,
 	useUserQuery,
-	useUserMutation,
+	useUserNotionDBMutation,
 	useDBValidateQuery,
 } from '@/helpers/api';
 import { useEffect, useState } from 'react';
@@ -17,6 +17,8 @@ import type {
 	SchemaValidationResponseT,
 } from '@/functions-helpers/notion-api';
 import { Icon } from '@iconify/react';
+import useIsGoogleSetupComplete from '@/hooks/useIsGoogleSetupComplete';
+import useActualNotionDbId from '@/hooks/useActualNotionDbId';
 
 export function Step({
 	state,
@@ -88,13 +90,12 @@ export function Step({
 export default function ConnectNotion(props: { hasToken: boolean }) {
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const userQ = useUserQuery(props.hasToken);
-	const userM = useUserMutation();
-	const isGoogleSetUp = !userQ.error && !!userQ.data?.tasklistId;
+	const userDBM = useUserNotionDBMutation();
+	const isGoogleSetUp = useIsGoogleSetupComplete(props.hasToken);
 	const isNotionAuthorized = !userQ.error && !!userQ.data?.nConnected;
 	const dbsQ = useDBsQuery(isGoogleSetUp && isNotionAuthorized);
-	const dbValidationQ = useDBValidateQuery(
-		!userQ.isLoading && userQ.data?.databaseId,
-	);
+	const notionDbId = useActualNotionDbId(props.hasToken);
+	const dbValidationQ = useDBValidateQuery(notionDbId);
 	const createGHIssue = (
 		<>
 			<a
@@ -113,9 +114,9 @@ export default function ConnectNotion(props: { hasToken: boolean }) {
 	// We validate later - we validate the one that is saved in the user record. For simplicity.
 	useEffect(() => {
 		if (dbsQ.data?.length === 1 && dbsQ.data[0].id !== userQ.data?.databaseId) {
-			userM.mutate({ databaseId: dbsQ.data[0].id });
+			userDBM.mutate(dbsQ.data[0].id);
 		}
-	}, [dbsQ.data]);
+	}, [dbsQ.data, userQ.data]);
 
 	const selectedDBName = (() => {
 		if (userQ.data?.databaseId && dbsQ.data) {
@@ -124,11 +125,20 @@ export default function ConnectNotion(props: { hasToken: boolean }) {
 		return null;
 	})();
 
-	if (dbsQ.isLoading || dbValidationQ.isLoading || userM.isPending) {
+	if (!isGoogleSetUp) {
+		return <Step state="not-connected" />;
+	}
+
+	if (
+		dbsQ.isLoading ||
+		(dbsQ.data?.length === 1 && dbsQ.data[0].id !== userQ.data?.databaseId) ||
+		userDBM.isPending ||
+		dbValidationQ.isLoading
+	) {
 		return <Step state="not-connected" isLoading={true} />;
 	}
 
-	if (userQ.isError || userM.isError || dbsQ.isError) {
+	if (userQ.isError || userDBM.isError || dbsQ.isError) {
 		return (
 			<div className="w-full">
 				<Step state="not-connected">
@@ -167,10 +177,6 @@ export default function ConnectNotion(props: { hasToken: boolean }) {
 				</Step>
 			</div>
 		);
-	}
-
-	if (!isGoogleSetUp) {
-		return <Step state="not-connected" />;
 	}
 
 	// Let user connect Notion

@@ -7,6 +7,7 @@ import {
 } from '@/helpers/api';
 import { Icon } from '@iconify/react';
 import Button from './Button';
+import useActualNotionDbId from '@/hooks/useActualNotionDbId';
 
 type SyncStateT = 'not-synced' | 'ready' | 'syncing' | 'synced';
 
@@ -41,7 +42,7 @@ export function Step({
 	if (state === 'ready' || state === 'syncing') {
 		return (
 			<div className="w-full items-center rounded-lg border border-gray-200 p-5 text-gray-800 shadow-md">
-				<div className="text-xl sm:text-2xl font-semibold">
+				<div className="text-xl font-semibold sm:text-2xl">
 					Step 3.
 					<span className="ml-2">Initial Syncronization</span>
 				</div>
@@ -71,9 +72,8 @@ export function Step({
 
 export default function InitialSync(props: { hasToken: boolean }) {
 	const userQ = useUserQuery(props.hasToken);
-	const dbValidationQ = useDBValidateQuery(
-		!userQ.isLoading && userQ.data?.databaseId,
-	);
+	const notionDbId = useActualNotionDbId(props.hasToken);
+	const dbValidationQ = useDBValidateQuery(notionDbId);
 	const isReadyToFetchTasks =
 		!userQ.error &&
 		!!userQ.data?.databaseId &&
