@@ -133,8 +133,7 @@ export default function ConnectGoogle(props: { hasToken: boolean }) {
 	// Save tasklist if there is only one
 	useEffect(() => {
 		if (tasklistsQ.data?.length === 1) {
-			// @ts-ignore
-			userM.mutate(tasklistsQ.data[0].id);
+			userM.mutate({ tasklistId: tasklistsQ.data[0].id });
 		}
 	}, [tasklistsQ.data]);
 
