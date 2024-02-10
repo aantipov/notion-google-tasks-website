@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import * as Sentry from '@sentry/browser';
 import {
 	useUserQuery,
 	useUserDeletion,
@@ -129,6 +130,12 @@ export default function ConnectGoogle(props: { hasToken: boolean }) {
 			on Github
 		</>
 	);
+
+	useEffect(() => {
+		if (userQ.data?.email) {
+			Sentry.setUser({ email: userQ.data.email });
+		}
+	}, [userQ.data?.email]);
 
 	// Save tasklist if there is only one && the saved one is different
 	useEffect(() => {
