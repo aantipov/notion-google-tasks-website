@@ -28,6 +28,7 @@ export default defineConfig({
 	vite: {
 		build: {
 			minify: false,
+			sourcemap: true,
 		},
 	},
 });

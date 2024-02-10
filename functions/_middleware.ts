@@ -1,7 +1,7 @@
 import sentryPlugin from '@cloudflare/pages-plugin-sentry';
+import type { PluginData } from '@cloudflare/pages-plugin-sentry';
 import { parseRequestCookies } from '@/helpers/parseRequestCookies';
 import { decodeJWTToken } from '@/helpers/decodeJWTTokens';
-import type { PluginData } from '@cloudflare/pages-plugin-sentry';
 import { ServerError } from '@/functions-helpers/server-error';
 import { DELETE_GTOKEN_COOKIE } from '@/constants';
 // https://developers.cloudflare.com/pages/functions/plugins/sentry/
