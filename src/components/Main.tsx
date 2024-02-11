@@ -85,7 +85,7 @@ export default function Main(props: {
 						</ErrorBoundary>
 					</div>
 
-					<div className="mt-8">
+					<div className="sentry-mask mt-8">
 						<ErrorBoundary fallback={<AlertDestructive />}>
 							<InitialSync hasToken={props.hasToken} />
 						</ErrorBoundary>
