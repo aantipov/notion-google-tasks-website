@@ -74,7 +74,7 @@ export default function Main(props: {
 	return (
 		<ErrorBoundary fallback={<AlertDestructive />}>
 			<QueryClientProvider client={queryClient}>
-				<div className="mt-6 max-w-2xl sm:w-[80%]">
+				<div className="notranslate mt-6 max-w-2xl sm:w-[80%]" translate="no">
 					<ErrorBoundary fallback={<AlertDestructive />}>
 						<ConnectGoogle hasToken={props.hasToken} />
 					</ErrorBoundary>
