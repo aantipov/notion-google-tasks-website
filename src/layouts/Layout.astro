@@ -91,7 +91,7 @@ const ogDesc =
 					sampleRate: 1.0, // 0.1 = 10% of events sent
 					autoSessionTracking: true,
 					tracesSampleRate: 1.0,
-					replaysSessionSampleRate: 0.2, // 0.1 = 10% of sessions are recorded
+					replaysSessionSampleRate: 0.01, // 0.1 = 10% of sessions are recorded
 					replaysOnErrorSampleRate: 1.0, // 0.1 = 10% of errors are recorded
 					integrations: [new Sentry.BrowserTracing(), new Sentry.Replay()],
 				});
