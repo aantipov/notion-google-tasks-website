@@ -1,6 +1,6 @@
 import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 import type * as googleApi from '@/functions-helpers/google-api';
-import * as notionApi from '@/functions-helpers/notion-api';
+import type * as notionApi from '@/functions-helpers/notion-api';
 
 type GTokenT =
 	ReturnType<typeof googleApi.fetchToken> extends Promise<infer T> ? T : never;

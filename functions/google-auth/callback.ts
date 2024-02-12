@@ -18,17 +18,40 @@ export const onRequestGet: PagesFunction<CFEnvT, any, PluginData> = async ({
 
 	// Possible Error values: https://datatracker.ietf.org/doc/html/rfc6749#section-4.1.2.1
 	if (authError) {
-		data.sentry.captureException(new Error('Google Auth Error: ' + authError));
+		data.sentry.captureException(new Error('google-auth-cb: ' + authError));
 		if (authError === 'access_denied') {
-			return Response.redirect(url.origin + '/?error=gaccess_denied', 302);
+			return new Response(null, {
+				status: 302,
+				statusText: 'Found',
+				headers: {
+					Location: '/',
+					'Set-Cookie': `auth-error=gaccess_denied; Path=/; Max-Age=20;`,
+				},
+			});
 		}
-		return Response.redirect(url.origin + '/?error=gaccess_error', 302);
+
+		return new Response(null, {
+			status: 302,
+			statusText: 'Found',
+			headers: {
+				Location: '/',
+				'Set-Cookie': `auth-error=gaccess_error; Path=/; Max-Age=20;`,
+			},
+		});
 	}
 
 	if (!authCode) {
-		data.sentry.captureException(new Error('Invalid request'));
-		return new Response('Invalid request. Please try again.', {
-			status: 400,
+		data.sentry.captureException(
+			new Error('google-auth-cb: missing auth code'),
+		);
+
+		return new Response(null, {
+			status: 302,
+			statusText: 'Found',
+			headers: {
+				Location: '/',
+				'Set-Cookie': `auth-error=gaccess_error; Path=/; Max-Age=20;`,
+			},
 		});
 	}
 
@@ -47,7 +70,14 @@ export const onRequestGet: PagesFunction<CFEnvT, any, PluginData> = async ({
 		jwtToken = await jwt.sign(tokenData, env.JWT_SECRET);
 	} catch (error) {
 		data.sentry.captureException(error);
-		return Response.redirect(url.origin + '/?error=gaccess_error', 302);
+		return new Response(null, {
+			status: 302,
+			statusText: 'Found',
+			headers: {
+				Location: '/',
+				'Set-Cookie': `auth-error=gaccess_error; Path=/; Max-Age=20;`,
+			},
+		});
 	}
 
 	return new Response(null, {

@@ -16,23 +16,9 @@ try {
 	console.error('Error while decoding JWT token', error);
 	Astro.cookies.set('gtoken', '', { expires: new Date(0) });
 }
-const isFeatureEnabled =
-	Astro.url.hostname !== 'notion-google-tasks-sync.com' ||
-	Astro.url.searchParams.get('q') === '123';
-const isUserDeniedGAccess =
-	Astro.url.searchParams.get('error') === 'gaccess_denied';
-const isUserDeniedNAccess =
-	Astro.url.searchParams.get('error') === 'naccess_denied';
-const isGAuthError = Astro.url.searchParams.get('error') === 'gaccess_error';
-const isNAuthError = Astro.url.searchParams.get('error') === 'naccess_error';
 ---
 
-<Layout
-	isUserDeniedGAccess={isUserDeniedGAccess}
-	isUserDeniedNAccess={isUserDeniedNAccess}
-	isGAuthError={isGAuthError}
-	isNAuthError={isNAuthError}
->
+<Layout>
 	<Hero />
 
 	<section class="my-32 flex flex-col items-center justify-center">
@@ -44,11 +30,7 @@ const isNAuthError = Astro.url.searchParams.get('error') === 'naccess_error';
 			<div class="mt-2 text-center text-3xl">in 3 steps</div>
 		</h1>
 
-		<Main
-			client:load
-			hasToken={hasGToken}
-			isFeatureEnabled={isFeatureEnabled}
-		/>
+		<Main client:load hasToken={hasGToken} />
 	</section>
 
 	<section class="mb-36 mt-24 flex flex-col items-center justify-center">

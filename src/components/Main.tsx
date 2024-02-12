@@ -9,6 +9,7 @@ import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import AuthErrors from './AuthErrors';
 
 function AlertDestructive() {
 	return (
@@ -67,10 +68,7 @@ class ErrorBoundary extends Component<Props, State> {
 	}
 }
 
-export default function Main(props: {
-	hasToken: boolean;
-	isFeatureEnabled: boolean;
-}) {
+export default function Main(props: { hasToken: boolean }) {
 	return (
 		<ErrorBoundary fallback={<AlertDestructive />}>
 			<QueryClientProvider client={queryClient}>
@@ -100,6 +98,7 @@ export default function Main(props: {
 					<Toaster />
 				</div>
 			</QueryClientProvider>
+			<AuthErrors />
 		</ErrorBoundary>
 	);
 }

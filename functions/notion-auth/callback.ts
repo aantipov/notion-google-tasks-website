@@ -19,17 +19,39 @@ export const onRequestGet: PagesFunction<
 
 	// Possible Error values: https://datatracker.ietf.org/doc/html/rfc6749#section-4.1.2.1
 	if (authError) {
-		data.sentry.captureException(new Error('Notion Auth Error: ' + authError));
+		data.sentry.captureException(new Error('notion-auth-cb: ' + authError));
 		if (authError === 'access_denied') {
-			return Response.redirect(url.origin + '/?error=naccess_denied', 302);
+			return new Response(null, {
+				status: 302,
+				statusText: 'Found',
+				headers: {
+					Location: '/',
+					'Set-Cookie': `auth-error=naccess_denied; Path=/; Max-Age=20;`,
+				},
+			});
 		}
-		return Response.redirect(url.origin + '/?error=naccess_error', 302);
+
+		return new Response(null, {
+			status: 302,
+			statusText: 'Found',
+			headers: {
+				Location: '/',
+				'Set-Cookie': `auth-error=naccess_error; Path=/; Max-Age=20;`,
+			},
+		});
 	}
 
 	if (!authCode) {
-		data.sentry.captureException(new Error('Invalid request'));
-		return new Response('Invalid request. Please try again.', {
-			status: 400,
+		data.sentry.captureException(
+			new Error('notion-auth-cb: missing auth code'),
+		);
+		return new Response(null, {
+			status: 302,
+			statusText: 'Found',
+			headers: {
+				Location: '/',
+				'Set-Cookie': `auth-error=naccess_error; Path=/; Max-Age=20;`,
+			},
 		});
 	}
 
@@ -47,7 +69,14 @@ export const onRequestGet: PagesFunction<
 		await dbApi.storeNotionToken(data.gToken.user.email, tokenData, env);
 	} catch (error) {
 		data.sentry.captureException(error);
-		return Response.redirect(url.origin + '/?error=naccess_error', 302);
+		return new Response(null, {
+			status: 302,
+			statusText: 'Found',
+			headers: {
+				Location: '/',
+				'Set-Cookie': `auth-error=naccess_error; Path=/; Max-Age=20;`,
+			},
+		});
 	}
 
 	return Response.redirect(url.origin + '/#start-sync', 302);
