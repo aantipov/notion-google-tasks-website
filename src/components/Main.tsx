@@ -68,30 +68,30 @@ class ErrorBoundary extends Component<Props, State> {
 	}
 }
 
-export default function Main(props: { hasToken: boolean }) {
+export default function Main() {
 	return (
 		<ErrorBoundary fallback={<AlertDestructive />}>
 			<QueryClientProvider client={queryClient}>
 				<div className="notranslate mt-6 max-w-2xl sm:w-[80%]" translate="no">
 					<ErrorBoundary fallback={<AlertDestructive />}>
-						<ConnectGoogle hasToken={props.hasToken} />
+						<ConnectGoogle />
 					</ErrorBoundary>
 
 					<div className="mt-8">
 						<ErrorBoundary fallback={<AlertDestructive />}>
-							<ConnectNotion hasToken={props.hasToken} />
+							<ConnectNotion />
 						</ErrorBoundary>
 					</div>
 
 					<div className="sentry-mask mt-8">
 						<ErrorBoundary fallback={<AlertDestructive />}>
-							<InitialSync hasToken={props.hasToken} />
+							<InitialSync />
 						</ErrorBoundary>
 					</div>
 
 					<div className="mt-12">
 						<ErrorBoundary fallback={<AlertDestructive />}>
-							<ConnectSuccess hasToken={props.hasToken} />
+							<ConnectSuccess />
 						</ErrorBoundary>
 					</div>
 

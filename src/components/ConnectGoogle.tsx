@@ -5,6 +5,7 @@ import {
 	useUserDeletion,
 	useTasklistsQuery,
 	useUserTasklistMutation,
+	useHasTokenQuery,
 } from '@/helpers/api';
 import Warning from './Warning';
 import { Icon } from '@iconify/react';
@@ -104,11 +105,12 @@ export function Step({
 	);
 }
 
-export default function ConnectGoogle(props: { hasToken: boolean }) {
-	const userQ = useUserQuery(props.hasToken);
+export default function ConnectGoogle() {
+	const { isSuccess: hasToken } = useHasTokenQuery();
+	const userQ = useUserQuery(hasToken);
 	const userTasklistM = useUserTasklistMutation();
 	const userD = useUserDeletion();
-	const tasklistsQ = useTasklistsQuery(props.hasToken);
+	const tasklistsQ = useTasklistsQuery(hasToken);
 	const [userSelectedTasklistId, setUserSelectedTasklistId] = useState<
 		string | null
 	>(null);
@@ -157,7 +159,7 @@ export default function ConnectGoogle(props: { hasToken: boolean }) {
 		return null;
 	})();
 
-	if (!props.hasToken) {
+	if (!hasToken) {
 		return <Step state="ready-to-connect" />;
 	}
 

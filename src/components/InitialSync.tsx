@@ -1,6 +1,7 @@
 import {
 	useDBValidateQuery,
 	useGTasksQuery,
+	useHasTokenQuery,
 	useNTasksQuery,
 	useSyncMutation,
 	useUserQuery,
@@ -70,9 +71,10 @@ export function Step({
 	);
 }
 
-export default function InitialSync(props: { hasToken: boolean }) {
-	const userQ = useUserQuery(props.hasToken);
-	const notionDbId = useActualNotionDbId(props.hasToken);
+export default function InitialSync() {
+	const { isSuccess: hasToken } = useHasTokenQuery();
+	const userQ = useUserQuery(hasToken);
+	const notionDbId = useActualNotionDbId(hasToken);
 	const dbValidationQ = useDBValidateQuery(notionDbId);
 	const isReadyToFetchTasks =
 		!userQ.error &&

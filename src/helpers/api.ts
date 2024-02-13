@@ -33,6 +33,25 @@ export interface GTaskT {
 	hidden?: boolean;
 }
 
+export const useHasTokenQuery = () =>
+	useQuery({
+		queryKey: ['has-token'],
+		queryFn: async () => {
+			const response = await fetch('/api/has-token');
+			if (!response.ok) {
+				throw new FetchError(response.status);
+			}
+			return 'Yes';
+		},
+		retry(failureCount, error) {
+			// @ts-ignore
+			if (error?.code === 401 || failureCount > 2) {
+				return false;
+			}
+			return true;
+		},
+	});
+
 export const useUserQuery = (enabled: boolean = true) =>
 	useQuery({
 		queryKey: ['user'],

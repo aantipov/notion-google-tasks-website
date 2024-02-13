@@ -1,7 +1,8 @@
-import { useUserQuery } from '@/helpers/api';
+import { useHasTokenQuery, useUserQuery } from '@/helpers/api';
 import { Icon } from '@iconify/react';
 
-export default function ConnectSuccess({ hasToken }: { hasToken: boolean }) {
+export default function ConnectSuccess() {
+	const { isSuccess: hasToken } = useHasTokenQuery();
 	const { isError, data } = useUserQuery(hasToken);
 
 	if (!isError && data?.tasklistId && data.databaseId && data.lastSynced) {

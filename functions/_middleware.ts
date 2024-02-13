@@ -15,6 +15,7 @@ const authentication: PagesFunction<CFEnvT, any, PluginData> = async ({
 }) => {
 	const authPaths = [
 		'/notion-auth/callback',
+		'/api/has-token',
 		'/api/user',
 		'/api/tasklists',
 		'/api/google-tasks',

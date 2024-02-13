@@ -3,6 +3,7 @@ import {
 	useUserQuery,
 	useUserNotionDBMutation,
 	useDBValidateQuery,
+	useHasTokenQuery,
 } from '@/helpers/api';
 import { useEffect, useState } from 'react';
 import clsx from 'clsx';
@@ -87,14 +88,15 @@ export function Step({
 	);
 }
 
-export default function ConnectNotion(props: { hasToken: boolean }) {
+export default function ConnectNotion() {
+	const { isSuccess: hasToken } = useHasTokenQuery();
 	const [isModalOpen, setIsModalOpen] = useState(false);
-	const userQ = useUserQuery(props.hasToken);
+	const userQ = useUserQuery(hasToken);
 	const userDBM = useUserNotionDBMutation();
-	const isGoogleSetUp = useIsGoogleSetupComplete(props.hasToken);
+	const isGoogleSetUp = useIsGoogleSetupComplete(hasToken);
 	const isNotionAuthorized = !userQ.error && !!userQ.data?.nConnected;
 	const dbsQ = useDBsQuery(isGoogleSetUp && isNotionAuthorized);
-	const notionDbId = useActualNotionDbId(props.hasToken);
+	const notionDbId = useActualNotionDbId(hasToken);
 	const dbValidationQ = useDBValidateQuery(notionDbId);
 	const createGHIssue = (
 		<>
