@@ -1,4 +1,4 @@
-import { defineConfig } from 'astro/config';
+import { defineConfig, passthroughImageService } from 'astro/config';
 import tailwind from '@astrojs/tailwind';
 import react from '@astrojs/react';
 
@@ -6,6 +6,9 @@ import react from '@astrojs/react';
 export default defineConfig({
 	site: 'https://notion-google-tasks-sync.com',
 	output: 'static',
+	image: {
+		service: passthroughImageService(), // quality of images is bad with the default service
+	},
 	// adapter: cloudflare({
 	// 	mode: 'directory',
 	// 	routes: {
