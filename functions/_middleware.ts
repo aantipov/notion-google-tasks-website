@@ -35,7 +35,10 @@ const authentication: PagesFunction<CFEnvT, any, PluginData> = async ({
 	const gToken = await decodeJWTToken(gJWTToken, env.JWT_SECRET);
 
 	if (!gToken) {
-		data.sentry.captureException(new Error('Invalid Google token'));
+		if (!url.pathname.startsWith('/api/has-token')) {
+			// Don't capture the exception for /api/has-token - it's used to check if the user is authenticated
+			data.sentry.captureException(new Error('Invalid Google token'));
+		}
 		return new Response('Invalid Google token', {
 			status: 401,
 			headers: [['Set-Cookie', DELETE_GTOKEN_COOKIE]],
