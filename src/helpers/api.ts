@@ -129,7 +129,7 @@ export const useUserDeletion = () => {
 			}
 			return;
 		},
-		onSuccess: (data) => {
+		onSuccess: (_data) => {
 			queryClient.setQueryData(['user'], null);
 		},
 	});

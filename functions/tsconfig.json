@@ -8,11 +8,11 @@
 		"types": ["@cloudflare/workers-types"],
 		"paths": {
 			"@/*": ["../src/*"],
-			"@helpers/*": ["../src/helpers/*"]
+			"@helpers/*": ["../src/helpers/*"],
 		},
 		"strict": true,
 		"moduleResolution": "node",
-		"verbatimModuleSyntax": true
+		"verbatimModuleSyntax": true,
 	},
-	"exclude": ["node_modules", "dist", "test"]
+	"exclude": ["node_modules", "dist", "test"],
 }
