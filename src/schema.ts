@@ -43,3 +43,14 @@ export type UserRawT = typeof users.$inferInsert;
 export type UserT = Omit<UserRawT, 'gToken' | 'nToken' | 'mapping'> & {
 	nConnected: boolean;
 };
+
+export const syncStats = sqliteTable('sync_stats', {
+	id: integer('id').primaryKey(),
+	email: text('email').notNull(),
+	created: integer('created', { mode: 'number' }).notNull(),
+	updated: integer('updated', { mode: 'number' }).notNull(),
+	deleted: integer('deleted', { mode: 'number' }).notNull(),
+	total: integer('total', { mode: 'number' }).notNull(),
+	system: text('system', { enum: ['google', 'notion'] }).notNull(),
+	created_at: integer('created_at', { mode: 'timestamp' }).notNull(),
+});
